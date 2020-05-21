@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="150dp" >
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="点击“OK”完成上传,点击“CANCEL”取消本次上传"
+        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="10dp">
+    </TextView>
+
+    <Button
+        android:id="@+id/ok"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="16dp"
+        android:text="OK" />
+
+    <Button
+        android:id="@+id/cancel"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/ok"
+        android:layout_alignBottom="@+id/ok"
+        android:layout_marginRight="15dp"
+        android:layout_toLeftOf="@+id/ok"
+        android:text="CANCEL" />
+
+</RelativeLayout>

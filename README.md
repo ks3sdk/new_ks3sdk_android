@@ -3,7 +3,7 @@
 * [KS3 SDK for Android](https://github.com/ks3sdk/ks3-android-sdk)
 
 
-#*KS3 SDK for Android使用指南
+#KS3 SDK for Android使用指南
 ---
 ##开发前准备
 ###依赖库
@@ -11,7 +11,7 @@
 
 * [android-async-http:1.4.9](https://github.com/loopj/android-async-http)
 
-*或者采用Grale
+*或者采用Gradle
 
 ```
 repositories {
@@ -45,7 +45,8 @@ SDK以jar包形式呈现。将releases文件夹下*ks3-android-sdk-1.4.3.jar*，
 > 更多KS3介绍文档，请参考[文档中心:](http://ks3.ksyun.com/doc/index.html)
 
 ###运行环境
- minSdkVersion 9
+*minSdkVersion 9
+
 
 ###补充说明
 **线程安全:** 考虑到Android 4.0之后不再允许主线程内进行网络请求，以及UI操作必须在主线程中进行。ks3-android-sdk所提供的API，默认让开发者在主线程进行调用，且会以异步方式进行请求，请求回调方法仍将执行在主线程。

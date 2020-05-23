@@ -58,7 +58,6 @@ SDK以jar包形式呈现。将releases文件夹下*ks3-android-sdk-1.4.3.jar*，
 	ArrayList<Bucket> bucketList = client.syncListBuckets();// 同步API调用示例，需要在用户非主线程中执行，失败时会抛出异常
 ~~~
 
->同步API接口文档，请见 [SDK-Javadoc:](https://github.com/ks3sdk/ks3-android-sdk/tree/master/releases/doc) 
 
 ##安全性
 

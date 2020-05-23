@@ -254,9 +254,6 @@ onCalculateAuth（）回调方法参数说明：
 - Ks3ClientConfiguration 配置Ks3Client参数，包括代理设置，请求超时时长以及重试次数等
 - AuthUtils 包含授权算法的工具类
 
->为方便开发者使用，SDK在REST API接口返回值基础上进行了封装，具体更多封装类详情请见
->[SDK-Javadoc:](https://github.com/ks3sdk/ks3-android-sdk/tree/master/releases/doc)
-
 ###资源管理操作
 * [List Buckets](#list-buckets) 列出客户所有的Bucket信息
 * [Create Bucket](#create-bucket) 创建一个新的Bucket
@@ -2496,6 +2493,3 @@ public void completeMultipartUpload(CompleteMultipartUploadRequest request, Comp
 	}
 
 ````
-
-##其它
->完整示例，请见 [KS3-Android-SDK-Demo](https://github.com/ks3sdk/ks3-android-sdk/tree/master/Ks3SdkAndroid/demo) 

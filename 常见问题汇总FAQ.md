@@ -13,9 +13,8 @@
       
 &ensp;&ensp;&ensp;&ensp;每次上传文件都会回调到AuthListener---onCalculateAuth(),从而获取本次上传文件操作的签名。
       
-      
-      
-      ```
+
+```
       //Activity里全局的client
         client = new Ks3Client(new AuthListener() {
             @Override
@@ -79,3 +78,28 @@
 	}
 }
 ```
+&ensp;&ensp;&ensp;&ensp;doSingleUpload方法详情请前往demo--UploadActivity查看
+
+**3.问题2中这种方式，在一个Activity中多次上传文件时，会不会使得参数固定，导致签名不对？**
+
+
+答：不会。
+
+&ensp;&ensp;&ensp;&ensp;我们每次上传文件时都会调用方法：
+
+```
+	private void doSingleUpload(final String bucketName, final UploadFile item) {
+		final PutObjectRequest request = new PutObjectRequest(bucketName,
+				item.file.getName(), item.file);
+
+		client.putObject(request, new PutObjectResponseHandler() {
+			....
+			....
+		});
+	}
+}
+```
+
+&ensp;&ensp;&ensp;&ensp;每次该方法会为我们生成一个新的PutObjectRequest对象，签名需要的httpMethod,ContentType,Date,ContentMD5等参数，会存储在这个request对象里面，最终回调到AuthListener---onCalculateAuth(String httpMethod, String ContentType, String Date, String ContentMD5,String Resource, String Headers)  方法里。我们通过这些参数去请求APP服务器，获取正确签名。
+
+&ensp;&ensp;&ensp;&ensp;**因此，我们每一次上传文件都需要一个新的PutObjectRequest对象，而client对象只需要一个全局的即可。**

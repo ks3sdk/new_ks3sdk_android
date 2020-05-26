@@ -1,13 +1,21 @@
 package com.ks3.demo.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.ClientProtocolException;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
+import cz.msebera.android.httpclient.util.EntityUtils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -37,6 +45,7 @@ import com.ksyun.ks3.model.PartETag;
 import com.ksyun.ks3.model.result.CompleteMultipartUploadResult;
 import com.ksyun.ks3.model.result.InitiateMultipartUploadResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
+import com.ksyun.ks3.services.AuthListener;
 import com.ksyun.ks3.services.Ks3Client;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.handler.AbortMultipartUploadResponseHandler;
@@ -51,6 +60,9 @@ import com.ksyun.ks3.services.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * 
@@ -283,44 +295,29 @@ public class UploadActivity extends Activity implements OnItemClickListener {
 	
 
 		// AuthListener方式初始化
-		// client = new Ks3Client(new AuthListener() {
-		// @Override
-		// public String onCalculateAuth(final String httpMethod,
-		// final String ContentType, final String Date,
-		// final String ContentMD5, final String Resource,
-		// final String Headers) {
-		// // 此处应由APP端向业务服务器发送post请求返回Token。
-		// // 需要注意该回调方法运行在非主线程
-		// // 此处内部写法仅为示例，开发者请根据自身情况修改
-		// StringBuffer result = new StringBuffer();
-		// HttpPost request = new HttpPost(Constants.APP_SERTVER_HOST);
-		// StringEntity se;
-		// try {
-		// JSONObject object = new JSONObject();
-		// object.put("http_method", httpMethod.toString());
-		// object.put("content_type", ContentType);
-		// object.put("date", Date);
-		// object.put("content_md5", ContentMD5);
-		// object.put("resource", Resource);
-		// object.put("headers", Headers);
-		// se = new StringEntity(object.toString());
-		// request.setEntity(se);
-		// HttpResponse httpResponse = new DefaultHttpClient().execute(request);
-		// String retSrc = EntityUtils.toString(httpResponse
-		// .getEntity());
-		// result.append(retSrc);
-		// } catch (JSONException e) {
-		// e.printStackTrace();
-		// } catch (UnsupportedEncodingException e) {
-		// e.printStackTrace();
-		// } catch (ClientProtocolException e) {
-		// e.printStackTrace();
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-		// return result.toString();
-		// }
-		// }, UploadActivity.this);
+		// Token方式初始化出一个在Activity里全局的client，并在AuthListener---onCalculateAuth()回调里向APP服务器获取签名。
+		// 每次上传文件都会回调到AuthListener---onCalculateAuth(),从而获取本次上传文件操作的签名。
+		//当你需要在一个Activity里多次上传文件时，每次上传操作都会回调到onCalculateAuth()去获取签名
+//		 client = new Ks3Client(new AuthListener() {
+//		 @Override
+//		 public String onCalculateAuth(final String httpMethod,
+//		 final String ContentType, final String Date,
+//		 final String ContentMD5, final String Resource,
+//		 final String Headers) {
+			 // 此处应由APP端向业务服务器发送post请求返回Token(同步请求)。
+			 // 需要注意该回调方法运行在非主线程
+			 // 此处内部写法仅为示例，开发者请根据自身情况修改
+			 //requsetToAppServer方法向App服务器发送请求，获取token签名
+			 //Looper.prepare();
+//			 String token = requsetToAppServer(httpMethod, ContentType,
+//					 Date, ContentMD5, Resource, Headers);
+//			 return token;
+
+//		 }
+//		 }, UploadActivity.this);
+//		configuration = Ks3ClientConfiguration.getDefaultConfiguration();
+//		client.setEndpoint(Constants.END_POINT);
+
 
 		// 输入框确获取Bucket之后，允许选择文件，开始Upload操作
 		bucketInpuDialog = new BucketInpuDialog(UploadActivity.this);

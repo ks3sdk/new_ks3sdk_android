@@ -254,7 +254,7 @@ onCalculateAuth（）回调方法参数说明：
 - AuthUtils 包含授权算法的工具类
 
 ###资源管理操作
-* [List Buckets](#list-buckets) 列出客户所有的Bucket信息
+* [List Buckets](###list-buckets) 列出客户所有的Bucket信息
 * [Create Bucket](#create-bucket) 创建一个新的Bucket
 * [Delete Bucket](#delete-bucket) 删除指定Bucket
 * [Get Bucket ACL](#get-bucket-acl) 获取Bucket的ACL
@@ -274,6 +274,7 @@ onCalculateAuth（）回调方法参数说明：
 * [Abort Multipart Upload](#abort-multipart-upload) 取消分块上传
 * [Complete Multipart Upload](#complete-multipart-upload) 组装所有分块上传的文件
 * [Multipart Upload Example Code](#multipart-upload-example-code) 分片上传代码示例
+* [常见问题](#) 一些用户在使用过程中遇到的问题
 
 ###Service操作
 

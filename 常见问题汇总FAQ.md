@@ -103,3 +103,15 @@
 &ensp;&ensp;&ensp;&ensp;每次该方法会为我们生成一个新的PutObjectRequest对象，签名需要的httpMethod,ContentType,Date,ContentMD5等参数，会存储在这个request对象里面，最终回调到AuthListener---onCalculateAuth(String httpMethod, String ContentType, String Date, String ContentMD5,String Resource, String Headers)  方法里。我们通过这些参数去请求APP服务器，获取正确签名。
 
 &ensp;&ensp;&ensp;&ensp;**因此，我们每一次上传文件都需要一个新的PutObjectRequest对象，而client对象只需要一个全局的即可。**
+
+
+
+**4.错误: 程序包cz.msebera.android.httpclient.XXX不存在**
+
+
+&ensp;&ensp;&ensp;&ensp;API 23 以后 Apache 官方放弃了 HttpClient 对 Android 的支持;所以使用第三方包
+```
+dependencies {
+    api 'cz.msebera.android:httpclient:4.5.8'
+}
+```

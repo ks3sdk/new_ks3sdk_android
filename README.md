@@ -20,6 +20,7 @@ repositories {
 
 dependencies {
   implementation 'com.loopj.android:android-async-http:1.4.9'
+  #如遇到并发问题 请本地引用我们打好的jar android-async-http
 }
 ```
 

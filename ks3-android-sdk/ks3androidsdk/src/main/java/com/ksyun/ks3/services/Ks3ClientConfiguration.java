@@ -4,6 +4,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Ks3ClientConfiguration {
+
+	public static enum PROTOCOL{
+		http,https
+	}
+
 	public static final int DEFAULT_SOCKET_TIMEOUT = 50000;
 	public static final int DEFAULT_MAX_CONNECTIONS = 50;
 	public static final boolean DEFAULT_USE_REAPER = true;
@@ -25,15 +30,32 @@ public class Ks3ClientConfiguration {
 	private int maxRetrytime;
 	private int retryTimeOut;
 	private static Ks3ClientConfiguration instantce = null;
-	//添加代码
-	private Boolean domainMode = false;  //true for customized, false for predefined
-	public Boolean getDomainMode() {
-		return domainMode;
-	}
 
-	public void setDomainMode(Boolean domainMode) {
+	/**
+	 * @deprecated domainMode is misleading in libraries. For the library package name use LIBRARY_PACKAGE_NAME
+	 */
+	@Deprecated
+	private boolean domainMode = false;  //true for customized, false for predefined
+	/**
+	 *true表示以   endpoint/{bucket}/{key}的方式访问
+	 *false表示以  {bucket}.endpoint/{key}的方式访问
+	 *如果domainMode设置为true，pathStyleAccess可忽略设置
+	 */
+	private boolean pathStyleAccess = false;
+	/**
+	 * http或者https
+	 */
+	private PROTOCOL protocol = PROTOCOL.http;
+
+
+	public boolean getDomainMode() { return domainMode; }
+
+	public void setDomainMode(boolean domainMode) {
 		this.domainMode = domainMode;
 	}
+	public boolean isPathStyleAccess() { return pathStyleAccess; }
+
+	public void setPathStyleAccess(boolean pathStyleAccess) { this.pathStyleAccess = pathStyleAccess; }
 
 
 	private Ks3ClientConfiguration() {
@@ -73,6 +95,8 @@ public class Ks3ClientConfiguration {
 		this.maxRetrytime = other.maxRetrytime;
 		this.userAgent = other.userAgent;
 		this.threadPool = other.threadPool;
+		this.pathStyleAccess = other.pathStyleAccess;
+		this.domainMode = other.domainMode;
 	}
 
 	public int getMaxRetrytime() {
@@ -239,7 +263,7 @@ public class Ks3ClientConfiguration {
 	}
 
 	public void setSocketBufferSizeHints(int socketSendBufferSizeHint,
-			int socketReceiveBufferSizeHint) {
+										 int socketReceiveBufferSizeHint) {
 		this.socketSendBufferSizeHint = socketSendBufferSizeHint;
 		this.socketReceiveBufferSizeHint = socketReceiveBufferSizeHint;
 	}
@@ -258,5 +282,13 @@ public class Ks3ClientConfiguration {
 	public void setThreadPool(ExecutorService threadPool) {
 		this.threadPool = threadPool;
 	}
-	
+
+	public PROTOCOL getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(PROTOCOL protocol) {
+		this.protocol = protocol;
+	}
+
 }

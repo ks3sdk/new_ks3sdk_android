@@ -41,17 +41,11 @@ public class Ks3HttpExector {
 			}
 		}
 		request.setAuthorization(auth);
-		//添加代码
-		if (request.getBucketname() != null) {
-			if(clientConfiguration.getDomainMode()){
-				request.setEndpoint(endpoint);
-			}else{
-				request.setEndpoint(request.getBucketname() + "." + endpoint);
-			}
-			
-		
-		} else {
+		//设置host
+		if (request.getBucketname() == null || clientConfiguration.isPathStyleAccess()) {
 			request.setEndpoint(endpoint);
+		} else {
+			request.setEndpoint(request.getBucketname() + "." + endpoint);
 		}
 
 		// 异步

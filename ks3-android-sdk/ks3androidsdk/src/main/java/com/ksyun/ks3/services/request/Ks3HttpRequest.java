@@ -38,6 +38,8 @@ import com.ksyun.ks3.model.transfer.RequestProgressListener;
 import com.ksyun.ks3.services.AuthListener;
 import com.ksyun.ks3.services.AuthResult;
 import com.ksyun.ks3.services.Ks3AuthHandler;
+import com.ksyun.ks3.services.Ks3ClientConfiguration;
+import com.ksyun.ks3.services.Ks3HttpExector;
 import com.ksyun.ks3.services.ServerDateAuthListener;
 import com.ksyun.ks3.util.ByteUtil;
 import com.ksyun.ks3.util.Constants;
@@ -314,7 +316,7 @@ public abstract class Ks3HttpRequest implements Serializable {
 	}
 
 	private void setupRequestDefault() {
-		url = getEndpoint().toString();
+		url = toUrl();
 		if (url.startsWith("http://") || url.startsWith("https://"))
 			url = url.replace("http://", "").replace("https://", "");
 		httpMethod = HttpMethod.POST;
@@ -558,5 +560,38 @@ public abstract class Ks3HttpRequest implements Serializable {
         Log.d("Ks3HttpRequest", "Ks3HttpRequest finalize:"+this);
         super.finalize();
     }
+	public String toUrl() {
+		String url = "";
+		String bucket = this.getBucketname();
+		String key = this.getObjectkey();
+		String endpoint = this.getEndpoint();
+		key = HttpUtils.urlEncode(key, true);
+		String encodedParams = HttpUtils.encodeParams(this.getParams());
+		boolean pathStyle = Ks3ClientConfiguration.getDefaultConfiguration().isPathStyleAccess();
+		boolean domainMode = Ks3ClientConfiguration.getDefaultConfiguration().getDomainMode();
+
+		Ks3ClientConfiguration.PROTOCOL spePro = Ks3ClientConfiguration.getDefaultConfiguration().getProtocol();
+		if (spePro == null)
+			spePro = Ks3ClientConfiguration.PROTOCOL.http;
+
+		if (bucket == null || pathStyle) {
+			url = new StringBuffer()
+					.append(endpoint)
+					.append(StringUtils.isBlank(bucket) ? "" : "/" + bucket)
+					.append(StringUtils.isBlank(key) ? "" : "/" + key)
+					.toString();
+		} else {
+			url = new StringBuffer()
+					.append(endpoint)
+					.append(StringUtils.isBlank(key) ? "" : "/" + key)
+					.toString();
+		}
+
+		url = url.replace("//", "/%2F");
+		url = spePro.toString() + "://" + url;
+		if (!StringUtils.isBlank(encodedParams))
+			url += "?" + encodedParams;
+		return url;
+	}
 
 }

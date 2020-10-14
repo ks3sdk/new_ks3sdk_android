@@ -316,9 +316,7 @@ public abstract class Ks3HttpRequest implements Serializable {
 	}
 
 	private void setupRequestDefault() {
-		url = toUrl();
-		if (url.startsWith("http://") || url.startsWith("https://"))
-			url = url.replace("http://", "").replace("https://", "");
+
 		httpMethod = HttpMethod.POST;
 		this.setContentMD5("");
 		this.addHeader(HttpHeaders.UserAgent, Constants.KS3_SDK_USER_AGENT);
@@ -336,14 +334,7 @@ public abstract class Ks3HttpRequest implements Serializable {
 						.getRequestBody()));
 		}
 		String encodedParams = encodeParams();
-		String encodedObjectKey = (StringUtils.isBlank(this.objectkey)) ? ""
-				: HttpUtils.urlEncode(this.objectkey,true);
-		url = "https://" + url + "/" + encodedObjectKey;
-		url = urlEncode(url);
-		if (!TextUtils.isEmpty(encodedParams))
-			url += "?" + encodedParams;
-		// Pass url
-		this.setUrl(url);
+		this.setUrl(toUrl());
 
 		if (this.getHttpMethod() == HttpMethod.POST) {
 			if (requestBody == null && params != null) {

@@ -64,7 +64,7 @@ public class Ks3Error {
 			this.errorCode = judgeErrorCode(statesCode, throwable);
 			this.errorMessage = ks3ServerError.getServerErrorMessage();
 		} else {
-			Log.e(Constants.GLOBLE_LOG_TAG, "Parse Ks3Error Failed");
+			Log.e(Constants.GLOBLE_LOG_TAG, " Ks3Error is "+ throwable.getMessage());
 		}
 	}
 

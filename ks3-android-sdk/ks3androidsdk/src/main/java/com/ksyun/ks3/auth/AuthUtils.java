@@ -122,7 +122,7 @@ public class AuthUtils {
             if (i < (headList.size() - 1))
                 buffer.append("\n");
         }
-        Log.d(Constants.LOG_TAG, "header signer str = " + buffer.toString());
+        Log.d(Constants.LOG_TAG, "header signer str = " + buffer.toString() +"\n");
         return buffer.toString();
     }
 

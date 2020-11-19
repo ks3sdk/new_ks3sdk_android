@@ -31,6 +31,7 @@ import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.result.CopyResult;
 import com.ksyun.ks3.model.result.HeadObjectResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
+import com.ksyun.ks3.model.result.ReplicationRule;
 import com.ksyun.ks3.services.Ks3Client;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.handler.CopyObjectResponseHandler;
@@ -38,6 +39,7 @@ import com.ksyun.ks3.services.handler.CreateBucketResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteBucketResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteObjectRequestHandler;
 import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
+import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
@@ -45,11 +47,14 @@ import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
+import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
 import com.ksyun.ks3.services.handler.PutObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutObjectResponseHandler;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
+import com.ksyun.ks3.services.request.GetBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
 import com.ksyun.ks3.services.request.PutBucketACLRequest;
+import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 
 import java.io.File;
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int PUT_BUCKET_ACL = 3;
     public static final int HEAD_BUCKET = 4;
     public static final int DELETE_BUCKET = 5;
+    public static final int PUT_BUCKET_CRR = 18;
     // Object
     public static final int GET_OBJECT = 6;
     public static final int HEAD_OBJECT = 7;
@@ -190,6 +196,9 @@ public class MainActivity extends AppCompatActivity {
                     case COPY_OBJECT:
                         copyObject();
                         break;
+                    case PUT_BUCKET_CRR:
+                        putBucketCrr();
+                        break;
                     default:
                         break;
                 }
@@ -204,41 +213,41 @@ public class MainActivity extends AppCompatActivity {
             public void confirmBucketAndObject(String destinationBucket, String destinationObjectKey, String sourceBucketName, String sourceKey) {
                 client.copyObject(destinationBucket, destinationObjectKey,
                         sourceBucketName, sourceKey, new CopyObjectResponseHandler() {
-                    @Override
-                    public void onFailure(int statesCode, Ks3Error error,
-                                          Header[] responceHeaders, String response, Throwable paramThrowable) {
-                        Log.e("tag","copyObject--onFailure---statesCode："+statesCode+
-                                "---response:"+response);
-                    }
+                            @Override
+                            public void onFailure(int statesCode, Ks3Error error,
+                                                  Header[] responceHeaders, String response, Throwable paramThrowable) {
+                                Log.e("tag", "copyObject--onFailure---statesCode：" + statesCode +
+                                        "---response:" + response);
+                            }
 
-                    @Override
-                    public void onSuccess(int statesCode, Header[] responceHeaders,
-                                          CopyResult result) {
-                        StringBuffer stringBuffer = new StringBuffer();
-                        stringBuffer
-                                .append("lastModifiedDate      = "
-                                        + result
-                                        .getLastModified())
-                                .append("\n");
-                        stringBuffer.append(
-                                "ETag                  = "
-                                        + result
-                                        .getETag())
-                                .append("\n");
-                        Intent intent = new Intent(
-                                MainActivity.this,
-                                RESTAPITestResult.class);
+                            @Override
+                            public void onSuccess(int statesCode, Header[] responceHeaders,
+                                                  CopyResult result) {
+                                StringBuffer stringBuffer = new StringBuffer();
+                                stringBuffer
+                                        .append("lastModifiedDate      = "
+                                                + result
+                                                .getLastModified())
+                                        .append("\n");
+                                stringBuffer.append(
+                                        "ETag                  = "
+                                                + result
+                                                .getETag())
+                                        .append("\n");
+                                Intent intent = new Intent(
+                                        MainActivity.this,
+                                        RESTAPITestResult.class);
 
-                        Bundle data = new Bundle();
-                        data.putString(RESULT,
-                                stringBuffer.toString());
-                        data.putString(API,
-                                "copy object Result");
-                        intent.putExtras(data);
-                        startActivity(intent);
-                        Log.e("tag","headObject--onSuccess---"+stringBuffer.toString());
-                    }
-                });
+                                Bundle data = new Bundle();
+                                data.putString(RESULT,
+                                        stringBuffer.toString());
+                                data.putString(API,
+                                        "copy object Result");
+                                intent.putExtras(data);
+                                startActivity(intent);
+                                Log.e("tag", "headObject--onSuccess---" + stringBuffer.toString());
+                            }
+                        });
             }
         });
         bucketCopyObjectInpuDialog.show();
@@ -276,23 +285,23 @@ public class MainActivity extends AppCompatActivity {
                                         data.putString(API, "put object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","putObject--onTaskSuccess---"+stringBuffer.toString());
+                                        Log.e("tag", "putObject--onTaskSuccess---" + stringBuffer.toString());
 
                                     }
 
                                     @Override
                                     public void onTaskStart() {
-                                        Log.e("tag","putObject--onTaskStart---");
+                                        Log.e("tag", "putObject--onTaskStart---");
                                     }
 
                                     @Override
                                     public void onTaskFinish() {
-                                        Log.e("tag","putObject--onTaskFinish---");
+                                        Log.e("tag", "putObject--onTaskFinish---");
                                     }
 
                                     @Override
                                     public void onTaskProgress(double progress) {
-                                        Log.e("tag","putObject--onTaskProgress---"+progress);
+                                        Log.e("tag", "putObject--onTaskProgress---" + progress);
                                     }
 
                                     @Override
@@ -314,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                                                         + ",states code = "
                                                         + statesCode).append(
                                                 "\n").append("response:").append(response);
-                                        Log.e("tag","putObject--onTaskFailure---"+stringBuffer.toString());
+                                        Log.e("tag", "putObject--onTaskFailure---" + stringBuffer.toString());
 
                                     }
                                 });
@@ -337,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
                                     public void onSuccess(int statesCode,
                                                           Header[] responceHeaders,
                                                           ListPartsResult listPartsResult) {
-                                        Log.e("tag","listParts--onSuccess---"+statesCode);
+                                        Log.e("tag", "listParts--onSuccess---" + statesCode);
                                     }
 
                                     @Override
@@ -347,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
                                                           String response,
                                                           Throwable paramThrowable) {
                                         // TODO Auto-generated method stub
-                                        Log.e("tag","listParts--onFailure---"+statesCode);
+                                        Log.e("tag", "listParts--onFailure---" + statesCode);
 
                                     }
                                 });
@@ -364,9 +373,9 @@ public class MainActivity extends AppCompatActivity {
 //        client.setEndpoint("ks3-cn-beijing.ksyun.com");
 //        client.setConfiguration(configuration);
 //
-        client=Ks3ClientFactory.getDefaultClient(this);
+        client = Ks3ClientFactory.getDefaultClient(this);
         configuration = Ks3ClientConfiguration.getDefaultConfiguration();
-
+        configuration.setPathStyleAccess(false);
         // AuthListener方式初始化
         // client = new Ks3Client(new AuthListener() {
         // @Override
@@ -453,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "head object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","headObject--onSuccess---"+stringBuffer.toString());
+                                        Log.e("tag", "headObject--onSuccess---" + stringBuffer.toString());
                                     }
 
                                     @Override
@@ -479,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "head object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","headObject--onFailure---"+stringBuffer.toString());
+                                        Log.e("tag", "headObject--onFailure---" + stringBuffer.toString());
                                     }
                                 });
 
@@ -535,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "head object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","getObjectACL--onSuccess---"+stringBuffer.toString());
+                                        Log.e("tag", "getObjectACL--onSuccess---" + stringBuffer.toString());
 
 
                                     }
@@ -563,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "GET Object ACL Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","getObjectACL--onFailure---"+stringBuffer.toString());
+                                        Log.e("tag", "getObjectACL--onFailure---" + stringBuffer.toString());
 
                                     }
                                 });
@@ -593,7 +602,7 @@ public class MainActivity extends AppCompatActivity {
                         data.putString(API, "Delete Bucket Result");
                         intent.putExtras(data);
                         startActivity(intent);
-                        Log.e("tag","deleteBucket--onSuccess---"+stringBuffer.toString());
+                        Log.e("tag", "deleteBucket--onSuccess---" + stringBuffer.toString());
 
                     }
 
@@ -613,7 +622,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","deleteBucket--onFailure---"+stringBuffer.toString());
+                        Log.e("tag", "deleteBucket--onFailure---" + stringBuffer.toString());
                     }
                 });
             }
@@ -663,7 +672,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "Put Object ACL Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","putObjectACL--onSuccess---"+stringBuffer.toString());
+                                        Log.e("tag", "putObjectACL--onSuccess---" + stringBuffer.toString());
                                     }
 
                                     @Override
@@ -689,7 +698,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "PUT Object ACL Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","putObjectACL--onFailure---"+stringBuffer.toString());
+                                        Log.e("tag", "putObjectACL--onFailure---" + stringBuffer.toString());
                                     }
                                 });
                     }
@@ -716,7 +725,7 @@ public class MainActivity extends AppCompatActivity {
                         data.putString(API, "head Bucket Result");
                         intent.putExtras(data);
                         startActivity(intent);
-                        Log.e("tag","headBucket--onSuccess---"+stringBuffer.toString());
+                        Log.e("tag", "headBucket--onSuccess---" + stringBuffer.toString());
 
                     }
 
@@ -738,7 +747,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","headBucket--onFailure---"+stringBuffer.toString());
+                        Log.e("tag", "headBucket--onFailure---" + stringBuffer.toString());
                     }
                 });
             }
@@ -799,7 +808,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","putBucketACL--onSuccess---"+stringBuffer.toString());
+                        Log.e("tag", "putBucketACL--onSuccess---" + stringBuffer.toString());
                     }
 
                     @Override
@@ -820,7 +829,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","putBucketACL--onFailure---"+stringBuffer.toString());
+                        Log.e("tag", "putBucketACL--onFailure---" + stringBuffer.toString());
                     }
                 });
             }
@@ -863,7 +872,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","getBucketACL--onSuccess---"+stringBuffer.toString());
+                        Log.e("tag", "getBucketACL--onSuccess---" + stringBuffer.toString());
                     }
 
                     @Override
@@ -884,7 +893,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","getBucketACL--onFailure---"+stringBuffer.toString());
+                        Log.e("tag", "getBucketACL--onFailure---" + stringBuffer.toString());
                     }
                 });
             }
@@ -920,7 +929,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "Delete Object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","deleteObject--onSuccess---"+stringBuffer.toString());
+                                        Log.e("tag", "deleteObject--onSuccess---" + stringBuffer.toString());
                                     }
 
                                     @Override
@@ -946,7 +955,7 @@ public class MainActivity extends AppCompatActivity {
                                                 "Delete Object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag","deleteObject--onFailure---"+stringBuffer.toString());
+                                        Log.e("tag", "deleteObject--onFailure---" + stringBuffer.toString());
                                     }
                                 });
                     }
@@ -1039,7 +1048,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","listObjects--onSuccess---"+stringBuffer.toString());
+                        Log.e("tag", "listObjects--onSuccess---" + stringBuffer.toString());
                     }
 
                     @Override
@@ -1047,7 +1056,7 @@ public class MainActivity extends AppCompatActivity {
                                           Header[] responceHeaders, String response,
                                           Throwable paramThrowable) {
                         // TODO Auto-generated method stub
-                        Log.e("tag","listObjects--onFailure---"+statesCode);
+                        Log.e("tag", "listObjects--onFailure---" + statesCode);
                     }
                 });
             }
@@ -1077,7 +1086,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtras(data);
                 startActivity(intent);
 
-                Log.e("tag","listBuckets--onSuccess:"+stringBuffer.toString());
+                Log.e("tag", "listBuckets--onSuccess:" + stringBuffer.toString());
             }
 
             @Override
@@ -1097,7 +1106,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtras(data);
                 startActivity(intent);
 
-                Log.e("tag","listBuckets--onFailure:"+stringBuffer.toString());
+                Log.e("tag", "listBuckets--onFailure:" + stringBuffer.toString());
             }
         });
     }
@@ -1118,7 +1127,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","createBucket--onSuccess---"+"statesCode:"+statesCode);
+                        Log.e("tag", "createBucket--onSuccess---" + "statesCode:" + statesCode);
                     }
 
                     @Override
@@ -1139,7 +1148,7 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtras(data);
                         startActivity(intent);
 
-                        Log.e("tag","createBucket--onFailure:"+stringBuffer.toString());
+                        Log.e("tag", "createBucket--onFailure:" + stringBuffer.toString());
                     }
                 });
             }
@@ -1147,4 +1156,125 @@ public class MainActivity extends AppCompatActivity {
         bucketInpuDialog.show();
     }
 
+    private void putBucketCrr() {
+
+        //设置规则
+        ReplicationRule rule = new ReplicationRule();
+        List<String> prefixList = new ArrayList<String>();
+        prefixList.add("from");
+        rule.setPrefixList(prefixList);
+        rule.setTargetBucket("uptools2");
+        rule.setDeleteMarkerStatus(false);
+
+        client.putBucketCrr(new PutBucketReplicationConfigRequest("uptools2", rule), new PutBucketReplicationResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode,
+                                  Header[] responceHeaders) {
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, "success");
+                data.putString(API, "PutBucketCRR  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+            }
+
+            @Override
+            public void onFailure(int statesCode, Ks3Error error,
+                                  Header[] responceHeaders, String response,
+                                  Throwable paramThrowable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "putBucketCrr fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + paramThrowable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "PutBucketCRR");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "PutBucketCRR--onFailure:" + stringBuffer.toString());
+            }
+        });
+    }
+
+    private void getBucketCrr() {
+
+        //获取规则
+        client.getBucketCrr(new GetBucketReplicationConfigRequest("uptools2"), new GetBucketReplicationConfigResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error,
+                                  Header[] responceHeaders, String response,
+                                  Throwable paramThrowable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "getBucketCrr fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + paramThrowable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "getBucketCRR");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "getBucketCRR--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, ReplicationRule replicationRule) {
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, "success");
+                data.putString(API, "getBucketCRR  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "getBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+            }
+        });
+    }
+
+    private void deleteBucketCrr() {
+
+        //获取规则
+        client.getBucketCrr(new GetBucketReplicationConfigRequest("uptools2"), new GetBucketReplicationConfigResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error,
+                                  Header[] responceHeaders, String response,
+                                  Throwable paramThrowable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "getBucketCrr fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + paramThrowable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "getBucketCRR");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "getBucketCRR--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, ReplicationRule replicationRule) {
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, "success");
+                data.putString(API, "getBucketCRR  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "getBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+            }
+        });
+    }
 }

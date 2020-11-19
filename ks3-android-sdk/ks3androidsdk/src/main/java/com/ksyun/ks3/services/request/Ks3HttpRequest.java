@@ -459,8 +459,9 @@ public abstract class Ks3HttpRequest implements Serializable {
 			String value = null;
 			String key = entry.getKey()
 					.replace(String.valueOf((char) 8203), "");
-			if (!StringUtils.isBlank(entry.getValue()))
+			if (!StringUtils.isBlank(entry.getValue())) {
 				value = URLEncoder.encode(entry.getValue());
+			}
 			if (RequestUtils.subResource.contains(entry.getKey())) {
 				if (value != null && !value.equals(""))
 					kvList.add(key + "=" + value);

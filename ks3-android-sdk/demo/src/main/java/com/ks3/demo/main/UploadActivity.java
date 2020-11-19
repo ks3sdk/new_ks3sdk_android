@@ -1,26 +1,5 @@
 package com.ks3.demo.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.ClientProtocolException;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
-import cz.msebera.android.httpclient.util.EntityUtils;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -52,7 +31,6 @@ import com.ksyun.ks3.model.PartETag;
 import com.ksyun.ks3.model.result.CompleteMultipartUploadResult;
 import com.ksyun.ks3.model.result.InitiateMultipartUploadResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
-import com.ksyun.ks3.services.AuthListener;
 import com.ksyun.ks3.services.Ks3Client;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.handler.AbortMultipartUploadResponseHandler;
@@ -68,10 +46,21 @@ import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import cz.msebera.android.httpclient.Header;
 
 /**
  * Upload相关API使用示例，Initiate Multipart Upload，Upload Part，List Parts， Complete

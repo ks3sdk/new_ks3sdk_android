@@ -53,7 +53,9 @@ public class Ks3ClientConfiguration {
 	public void setDomainMode(boolean domainMode) {
 		this.domainMode = domainMode;
 	}
-	public boolean isPathStyleAccess() { return pathStyleAccess; }
+	public boolean isPathStyleAccess() {
+		return pathStyleAccess;
+	}
 
 	public void setPathStyleAccess(boolean pathStyleAccess) { this.pathStyleAccess = pathStyleAccess; }
 

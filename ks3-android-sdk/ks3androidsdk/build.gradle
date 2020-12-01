@@ -39,6 +39,7 @@ task exportJar(type: Copy) {
 
 dependencies {
     api 'com.loopj.android:android-async-http:1.4.9'
+    api 'com.google.code.gson:gson:2.8.5'
 }
 
 def siteUrl = 'https://github.com/ks3sdk/ks3-android-sdk' // 项目的主页
@@ -98,9 +99,9 @@ install {
                 }
                 developers {
                     developer {
-                        id 'zhaotao'    //填写的一些基本信息
-                        name 'zhaotao'
-                        email '450941617@qq.com'
+                        id 'cqc'    //填写的一些基本信息
+                        name 'cqc'
+                        email 'cqclife@qq.com'
                     }
                 }
                 scm {

@@ -3,6 +3,8 @@ package com.ksyun.ks3.services.handler;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.result.ReplicationRule;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -66,11 +68,12 @@ public abstract class GetBucketReplicationConfigResponceHandler extends Ks3HttpR
                     case XmlPullParser.END_DOCUMENT:
                         break;
                     case XmlPullParser.START_TAG:
-                        if ("RegionReplicate".equalsIgnoreCase(nodeName)) {
+                        if ("ns2:Replication".equalsIgnoreCase(nodeName)) {
                             replicationRule = new ReplicationRule();
                         }
                         if ("prefix".equalsIgnoreCase(nodeName)) {
                             prefixList.add(parse.nextText());
+                            replicationRule.setPrefixList(prefixList);
                         }
                         if ("DeleteMarkerStatus".equalsIgnoreCase(nodeName)) {
                             if (parse.nextText().contentEquals("Enabled")) {
@@ -82,9 +85,12 @@ public abstract class GetBucketReplicationConfigResponceHandler extends Ks3HttpR
                         if ("targetBucket".equalsIgnoreCase(nodeName)) {
                             replicationRule.setTargetBucket(parse.nextText());
                         }
+                        if ("region".equalsIgnoreCase(nodeName)) {
+                            replicationRule.setRegion(parse.nextText());
+                        }
                         break;
                     case XmlPullParser.END_TAG:
-                        if (nodeName.equalsIgnoreCase("RegionReplicate")) {
+                        if (nodeName.equalsIgnoreCase("ns2:Replication")) {
 
                         }
                         break;
@@ -105,5 +111,6 @@ public abstract class GetBucketReplicationConfigResponceHandler extends Ks3HttpR
         }
         return replicationRule;
     }
+
 }
 

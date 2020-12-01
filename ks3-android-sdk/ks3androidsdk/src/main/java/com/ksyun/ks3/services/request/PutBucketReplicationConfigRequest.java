@@ -39,7 +39,7 @@ public class PutBucketReplicationConfigRequest extends Ks3HttpRequest {
         this.setHttpMethod(HttpMethod.PUT);
         this.addParams("crr", "");
         XmlWriter writer = new XmlWriter();
-        writer.startWithNs("RegionReplicate");
+        writer.startWithNs("Replication");
         for (String prefix : replicationRule.getPrefixList()) {
             writer.start("prefix").value(prefix).end();
         }

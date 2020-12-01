@@ -5,10 +5,20 @@ import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReplicationRule extends Ks3HttpResponceHandler {
+public class ReplicationRule {
 
     private List<String> prefixList = new ArrayList<String>();
     private String targetBucket;
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    private String region;
     private boolean deleteMarkerStatus = false;
 
     /**

@@ -1183,23 +1183,24 @@ public class MainActivity extends AppCompatActivity {
         //设置规则
         ReplicationRule rule = new ReplicationRule();
         List<String> prefixList = new ArrayList<String>();
-        prefixList.add("from");
+        prefixList.add("test1");
         rule.setPrefixList(prefixList);
-        rule.setTargetBucket("uptools2");
+        rule.setTargetBucket("cqc-test2");
         rule.setDeleteMarkerStatus(false);
 
-        client.putBucketCrr(new PutBucketReplicationConfigRequest("uptools2", rule), new PutBucketReplicationResponceHandler() {
+        client.putBucketCrr(new PutBucketReplicationConfigRequest("cqc-test", rule), new PutBucketReplicationResponceHandler() {
             @Override
             public void onSuccess(int statesCode,
                                   Header[] responceHeaders) {
-                Intent intent = new Intent(MainActivity.this,
-                        RESTAPITestResult.class);
-                Bundle data = new Bundle();
-                data.putString(RESULT, "success");
-                data.putString(API, "PutBucketCRR  Result");
-                intent.putExtras(data);
-                startActivity(intent);
-                Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+//                Intent intent = new Intent(MainActivity.this,
+//                        RESTAPITestResult.class);
+//                Bundle data = new Bundle();
+//                data.putString(RESULT, "success");
+//                data.putString(API, "PutBucketCRR  Result");
+//                intent.putExtras(data);
+//                startActivity(intent);
+//                Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+                deleteBucketCrr();
             }
 
             @Override
@@ -1227,7 +1228,7 @@ public class MainActivity extends AppCompatActivity {
     private void getBucketCrr() {
 
         //获取规则
-        client.getBucketCrr(new GetBucketReplicationConfigRequest("uptools2"), new GetBucketReplicationConfigResponceHandler() {
+        client.getBucketCrr(new GetBucketReplicationConfigRequest("cqc-test"), new GetBucketReplicationConfigResponceHandler() {
             @Override
             public void onFailure(int statesCode, Ks3Error error,
                                   Header[] responceHeaders, String response,
@@ -1253,7 +1254,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this,
                         RESTAPITestResult.class);
                 Bundle data = new Bundle();
-                data.putString(RESULT, "success");
+                data.putString(RESULT, "success"+"/n"+replicationRule.toString());
                 data.putString(API, "getBucketCRR  Result");
                 intent.putExtras(data);
                 startActivity(intent);
@@ -1262,6 +1263,46 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 删除跨区域复制规则
+     */
+    private void deleteBucketCrr() {
+
+        //获取规则
+        client.deleteBucketCrr(new DeleteBucketReplicationConfigRequest("cqc-test"), new DeleteBucketReplicationConfigResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error,
+                                  Header[] responceHeaders, String response,
+                                  Throwable paramThrowable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "deleteBucketCrr fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + paramThrowable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "deleteBucketCrr");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "deleteBucketCrr--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders) {
+
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(API, "deleteBucketCrr  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "deleteBucketCrr--onSuccess---" + "statesCode:" + statesCode);
+            }
+        });
+    }
 
 
     /**

@@ -26,6 +26,8 @@
         <item>MultiPartUpload</item>
         <item>Copy Object</item>
         <item>Put BucketReplication</item>
+        <item>Put BucketPolicy</item>
+        <item>Put BucketQuota</item>
     </string-array>
     <string name="title_activity_multi_upload">MultiUploadActivity</string>
     <string name="large_text">

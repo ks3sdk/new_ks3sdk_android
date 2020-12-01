@@ -2,15 +2,15 @@ package com.ksyun.ks3.services.request;
 
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
-import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 
-public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
-    private static final long serialVersionUID = 1509787613917335360L;
+public class DeleteBucketQuotaRequest extends Ks3HttpRequest {
+    private static final long serialVersionUID = 1509187613918335260L;
+    String acl;
     @Override
     protected void setupRequest() throws Ks3ClientException {
-        this.setHttpMethod(HttpMethod.GET);
-        this.addParams("crr", "");
+        this.setHttpMethod(HttpMethod.DELETE);
+        this.addParams("quota", "");
     }
 
     @Override
@@ -19,7 +19,7 @@ public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
             throw new Ks3ClientException("bucket name is not correct");
     }
 
-    public GetBucketReplicationConfigRequest(String bucketName) {
+    public DeleteBucketQuotaRequest(String bucketName) {
         this.setBucketname(bucketName);
     }
 }

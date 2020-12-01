@@ -1,15 +1,6 @@
 package com.ksyun.ks3.services.handler;
 
 import com.ksyun.ks3.exception.Ks3Error;
-import com.ksyun.ks3.model.Owner;
-import com.ksyun.ks3.model.acl.AccessControlList;
-import com.ksyun.ks3.model.acl.AccessControlPolicy;
-import com.ksyun.ks3.model.acl.Grant;
-import com.ksyun.ks3.model.acl.Grantee;
-import com.ksyun.ks3.model.acl.GranteeEmail;
-import com.ksyun.ks3.model.acl.GranteeId;
-import com.ksyun.ks3.model.acl.GranteeUri;
-import com.ksyun.ks3.model.acl.Permission;
 import com.ksyun.ks3.model.result.ReplicationRule;
 
 import org.xmlpull.v1.XmlPullParser;

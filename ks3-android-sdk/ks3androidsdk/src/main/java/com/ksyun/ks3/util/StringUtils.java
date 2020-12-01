@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 public class StringUtils {
 	public static final int MIN_BUCKET_NAME_LENGTH = 3;
@@ -187,8 +188,16 @@ public class StringUtils {
 	private static IllegalStateException newIllegalStateException(String charsetName, UnsupportedEncodingException e) {
         return new IllegalStateException(charsetName + ": " + e);
     }
-	
-	
-	
+
+
+	/**
+	 * 是否是正整数
+	 * @param string
+	 * @return
+	 */
+	public static boolean isNumeric(String string){
+		Pattern pattern = Pattern.compile("[0-9]*");
+		return pattern.matcher(string).matches();
+	}
 
 }

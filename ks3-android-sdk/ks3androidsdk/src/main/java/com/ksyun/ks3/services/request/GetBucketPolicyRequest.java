@@ -2,15 +2,15 @@ package com.ksyun.ks3.services.request;
 
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
-import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 
-public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
-    private static final long serialVersionUID = 1509787613917335360L;
+public class GetBucketPolicyRequest extends Ks3HttpRequest {
+
+    private static final long serialVersionUID = 15097976989234360L;
     @Override
     protected void setupRequest() throws Ks3ClientException {
         this.setHttpMethod(HttpMethod.GET);
-        this.addParams("crr", "");
+        this.addParams("policy", "");
     }
 
     @Override
@@ -19,7 +19,7 @@ public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
             throw new Ks3ClientException("bucket name is not correct");
     }
 
-    public GetBucketReplicationConfigRequest(String bucketName) {
+    public GetBucketPolicyRequest(String bucketName) {
         this.setBucketname(bucketName);
     }
 }

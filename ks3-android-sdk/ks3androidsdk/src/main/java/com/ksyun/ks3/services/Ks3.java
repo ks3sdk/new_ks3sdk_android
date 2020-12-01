@@ -22,6 +22,7 @@ import com.ksyun.ks3.services.handler.AbortMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.CompleteMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.CopyObjectResponseHandler;
 import com.ksyun.ks3.services.handler.CreateBucketResponceHandler;
+import com.ksyun.ks3.services.handler.DeleteBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteBucketResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteObjectRequestHandler;
 import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
@@ -31,6 +32,7 @@ import com.ksyun.ks3.services.handler.GetObjectResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
 import com.ksyun.ks3.services.handler.InitiateMultipartUploadResponceHandler;
+import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
@@ -43,10 +45,14 @@ import com.ksyun.ks3.services.request.AbortMultipartUploadRequest;
 import com.ksyun.ks3.services.request.CompleteMultipartUploadRequest;
 import com.ksyun.ks3.services.request.CopyObjectRequest;
 import com.ksyun.ks3.services.request.CreateBucketRequest;
+import com.ksyun.ks3.services.request.DeleteBucketPolicyRequest;
+import com.ksyun.ks3.services.request.DeleteBucketQuotaRequest;
 import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteBucketRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
 import com.ksyun.ks3.services.request.GetBucketACLRequest;
+import com.ksyun.ks3.services.request.GetBucketPolicyRequest;
+import com.ksyun.ks3.services.request.GetBucketQuotaRequest;
 import com.ksyun.ks3.services.request.GetBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.GetObjectACLRequest;
 import com.ksyun.ks3.services.request.GetObjectRequest;
@@ -57,6 +63,8 @@ import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.services.request.ListBucketsRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
+import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
+import com.ksyun.ks3.services.request.PutBuckeQuotaRequest;
 import com.ksyun.ks3.services.request.PutBucketACLRequest;
 import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
@@ -344,7 +352,26 @@ public abstract interface Ks3 {
     public void getBucketCrr(GetBucketReplicationConfigRequest request,
                              GetBucketReplicationConfigResponceHandler handler);
 
-    public void deleteBucketCrr(DeleteBucketReplicationConfigRequest request);
+    public void deleteBucketCrr(DeleteBucketReplicationConfigRequest request,
+                                DeleteBucketReplicationConfigResponceHandler handler);
+
+    public void putBucketPolicy(PutBuckePolicyRequest request,
+                                Ks3HttpResponceHandler handler);
+
+    public void getBucketPolicy(GetBucketPolicyRequest request,
+                                Ks3HttpResponceHandler handler);
+
+    public void deleteBucketPolicy(DeleteBucketPolicyRequest request,
+                                   Ks3HttpResponceHandler handler);
+
+    public void putBucketQuota(PutBuckeQuotaRequest request,
+                               Ks3HttpResponceHandler handler);
+
+    public void getBucketQuota(GetBucketQuotaRequest request,
+                               Ks3HttpResponceHandler handler);
+
+    public void deleteBucketQuota(DeleteBucketQuotaRequest request,
+                                  Ks3HttpResponceHandler handler);
 
     public ListPartsResult syncListParts(ListPartsRequest request)
             throws Throwable;

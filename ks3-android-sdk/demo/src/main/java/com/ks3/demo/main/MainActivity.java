@@ -28,6 +28,8 @@ import com.ksyun.ks3.model.Owner;
 import com.ksyun.ks3.model.acl.AccessControlPolicy;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
+import com.ksyun.ks3.model.result.BucketPolicy;
+import com.ksyun.ks3.model.result.BucketQuota;
 import com.ksyun.ks3.model.result.CopyResult;
 import com.ksyun.ks3.model.result.HeadObjectResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
@@ -36,6 +38,7 @@ import com.ksyun.ks3.services.Ks3Client;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.handler.CopyObjectResponseHandler;
 import com.ksyun.ks3.services.handler.CreateBucketResponceHandler;
+import com.ksyun.ks3.services.handler.DeleteBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteBucketResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteObjectRequestHandler;
 import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
@@ -43,6 +46,7 @@ import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
+import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
@@ -50,9 +54,13 @@ import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
 import com.ksyun.ks3.services.handler.PutObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutObjectResponseHandler;
+import com.ksyun.ks3.services.request.DeleteBucketPolicyRequest;
+import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
 import com.ksyun.ks3.services.request.GetBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
+import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
+import com.ksyun.ks3.services.request.PutBuckeQuotaRequest;
 import com.ksyun.ks3.services.request.PutBucketACLRequest;
 import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
@@ -77,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int HEAD_BUCKET = 4;
     public static final int DELETE_BUCKET = 5;
     public static final int PUT_BUCKET_CRR = 18;
+    public static final int  PUT_BUCKET_POLICY = 19;
+    public static final int PUT_BUCKET_QUOTA = 20;
     // Object
     public static final int GET_OBJECT = 6;
     public static final int HEAD_OBJECT = 7;
@@ -123,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
         }).request();
     }
 
+    public static void main(String [] args){
+
+//       Ks3Client  client = Ks3ClientFactory.getDefaultClient(this);
+//        Ks3ClientConfiguration configuration2 = Ks3ClientConfiguration.getDefaultConfiguration();
+//        configuration2.setPathStyleAccess(false);
+    }
     private void setUpUserInterface() {
         bucketCopyObjectInpuDialog = new BucketCopyObjectInpuDialog(MainActivity.this);
         bucketInpuDialog = new BucketInpuDialog(MainActivity.this);
@@ -198,6 +214,12 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case PUT_BUCKET_CRR:
                         putBucketCrr();
+                        break;
+                    case PUT_BUCKET_QUOTA:
+                        putBucketQuota();
+                        break;
+                    case PUT_BUCKET_POLICY:
+                        putBucketPolicy();
                         break;
                     default:
                         break;
@@ -1240,40 +1262,92 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void deleteBucketCrr() {
 
-        //获取规则
-        client.getBucketCrr(new GetBucketReplicationConfigRequest("uptools2"), new GetBucketReplicationConfigResponceHandler() {
-            @Override
-            public void onFailure(int statesCode, Ks3Error error,
-                                  Header[] responceHeaders, String response,
-                                  Throwable paramThrowable) {
-                StringBuffer stringBuffer = new StringBuffer();
-                stringBuffer.append(
-                        "getBucketCrr fail , states code :" + statesCode)
-                        .append("\n").append("responce :").append(response);
-                stringBuffer.append("Exception :"
-                        + paramThrowable.toString());
-                Intent intent = new Intent(MainActivity.this,
-                        RESTAPITestResult.class);
-                Bundle data = new Bundle();
-                data.putString(RESULT, stringBuffer.toString());
-                data.putString(API, "getBucketCRR");
-                intent.putExtras(data);
-                startActivity(intent);
-                Log.e("tag", "getBucketCRR--onFailure:" + stringBuffer.toString());
-            }
 
+    /**
+     * 设置空间策略
+     */
+    private void putBucketPolicy() {
+
+        //请求内容
+        BucketPolicy policy = new BucketPolicy();
+        policy.setVersion("2015-11-01");
+        List<BucketPolicy.PolicyStatement> policyStatements = new ArrayList<>();
+        policyStatements.add(new BucketPolicy.PolicyStatement("Allow", "ks3:ListBuckets", "krn:ksc:ks3:::uptools2/*"));
+        policy.setStatement(policyStatements);
+        PutBuckePolicyRequest putBuckePolicyRequest = new PutBuckePolicyRequest("uptools2", policy);
+        client.putBucketPolicy(putBuckePolicyRequest, new Ks3HttpResponceHandler() {
             @Override
-            public void onSuccess(int statesCode, Header[] responceHeaders, ReplicationRule replicationRule) {
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
                 Intent intent = new Intent(MainActivity.this,
                         RESTAPITestResult.class);
                 Bundle data = new Bundle();
                 data.putString(RESULT, "success");
-                data.putString(API, "getBucketCRR  Result");
+                data.putString(API, "putBucketPolicy  Result");
                 intent.putExtras(data);
                 startActivity(intent);
-                Log.e("tag", "getBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+                Log.e("tag", "putBucketPolicy--onSuccess---" + "statesCode:" + statesCode);
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "putBucketPolicy fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + throwable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "putBucketPolicy");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "putBucketPolicy--onFailure:" + stringBuffer.toString());
+            }
+        });
+    }
+
+    /**
+     * 设置桶配额
+     */
+    private void putBucketQuota() {
+
+        //请求内容
+        BucketQuota quota = new BucketQuota(100);
+
+        PutBuckeQuotaRequest quotaRequest = new PutBuckeQuotaRequest("uptools2", quota);
+
+        client.putBucketQuota(quotaRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, "success");
+                data.putString(API, "putBucketQuota  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "putBucketQuota--onSuccess---" + "statesCode:" + statesCode);
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "putBucketQuota fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + throwable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "putBucketQuota");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "putBucketQuota--onFailure:" + stringBuffer.toString());
             }
         });
     }

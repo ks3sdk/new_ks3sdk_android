@@ -21,6 +21,4 @@ public class BucketQuota extends Ks3HttpResponceHandler {
     public BucketQuota(long storageQuota) {
         StorageQuota = storageQuota;
     }
-    public BucketQuota() {
-    }
 }

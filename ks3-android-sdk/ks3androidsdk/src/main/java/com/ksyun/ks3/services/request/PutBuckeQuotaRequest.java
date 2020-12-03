@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 
 public class PutBuckeQuotaRequest extends Ks3HttpRequest {
 
-    private static final long serialVersionUID = 28505402331223772L;
+    private static final long serialVersionUID = 28505402331283772L;
 
     private BucketQuota bucketQuota;
 

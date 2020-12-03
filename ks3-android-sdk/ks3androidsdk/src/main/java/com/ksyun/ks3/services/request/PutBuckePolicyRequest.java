@@ -34,7 +34,10 @@ public class PutBuckePolicyRequest extends Ks3HttpRequest {
 
         BucketPolicyData bucketPolicyData = new BucketPolicyData();
         bucketPolicyData.getStatement().add(policyRule);
+
+
         String bucketPolicyBody = new Gson().toJson(bucketPolicyData);
+        System.out.println(bucketPolicyBody);
         this.addHeader(HttpHeaders.ContentType, "application/json");
         this.addHeader(HttpHeaders.ContentMD5, Md5Utils.md5AsBase64(bucketPolicyBody.getBytes()));
         this.addHeader(HttpHeaders.ContentLength, String.valueOf(bucketPolicyBody.getBytes().length));

@@ -6,7 +6,7 @@ public class Constants {
 	public final static String KS3_SDK_USER_AGENT = "ks3-kss-android-sdk";
 	public final static String LOG_TAG = "ks3_android_sdk";
 	/* Xml namespace */
-	public final static String KS3_XML_NAMESPACE = "";
+	public final static String KS3_XML_NAMESPACE = "http://s3.amazonaws.com/doc/2006-03-01/";
 	public final static String KS3_PACAKAGE = "com.ksyun.ks3";
 	public static final String KS3_PROTOCOL = "http";
 	public static final String KS3_HOSTNAME = null;

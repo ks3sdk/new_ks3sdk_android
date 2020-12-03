@@ -31,20 +31,11 @@ public enum HttpHeaders {
 
 	/*Call back */
 	XKssCallBackUrl("x-kss-callbackurl"),
-	XKssCallBackBody("x-kss-callbackbody"),
-	AsynchronousProcessingList("kss-async-process",false),
-	NotifyURL("kss-notifyurl", false);
+	XKssCallBackBody("x-kss-callbackbody");
 	private String value;
-	private boolean isSpecHeader;
+
 	HttpHeaders(String value) {
 		this.value = value;
-	}
-	HttpHeaders(String value, boolean isSpecHeader) {
-		this(value, value, isSpecHeader);
-	}
-	HttpHeaders(String value, String value2, boolean isSpecHeader) {
-		this.value = value;
-		this.isSpecHeader = isSpecHeader;
 	}
 
 	@Override

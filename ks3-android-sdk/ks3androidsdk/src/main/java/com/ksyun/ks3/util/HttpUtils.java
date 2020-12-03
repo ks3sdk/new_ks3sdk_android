@@ -1,7 +1,5 @@
 package com.ksyun.ks3.util;
 
-import com.ksyun.ks3.services.request.adp.Adp;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -88,9 +86,7 @@ public class HttpUtils {
 				value = URLEncoder.encode(entry.getValue());
 			if (value != null && !value.equals("")) {
 				list.add(key + "=" + value);
-			}else if (value == null) {
-				list.add(key + "=" + "");
-			}else{
+			} else{
 				if (RequestUtils.subResource.contains(key))
 			    	list.add(key);
 			}
@@ -98,26 +94,5 @@ public class HttpUtils {
 
 		String queryParams = StringUtils.join(list.toArray(), "&");
 		return queryParams;
-	}
-	public static String convertAdps2String(List<Adp> fops){
-		StringBuffer fopStringBuffer = new StringBuffer();
-		for(Adp fop : fops){
-			fopStringBuffer.append(fop.getCommand());
-			if(!(StringUtils.isBlank(fop.getBucket())&&StringUtils.isBlank(fop.getKey()))){
-				if(StringUtils.isBlank(fop.getBucket())){
-					fopStringBuffer.append(String.format("|tag=saveas&object=%s",Base64.encode(fop.getKey().getBytes())));
-				}else if(StringUtils.isBlank(fop.getKey())){
-					fopStringBuffer.append(String.format("|tag=saveas&bucket=%s",fop.getBucket()));
-				}else{
-					fopStringBuffer.append(String.format("|tag=saveas&bucket=%s&object=%s",fop.getBucket(),Base64.encode(fop.getKey().getBytes())));
-				}
-			}
-			fopStringBuffer.append(";");
-		}
-		String fopString = fopStringBuffer.toString();
-		if(fopString.endsWith(";")){
-			fopString = fopString.substring(0,fopString.length()-1);
-		}
-		return fopString;
 	}
 }

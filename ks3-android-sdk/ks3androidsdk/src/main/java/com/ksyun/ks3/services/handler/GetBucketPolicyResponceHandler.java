@@ -2,7 +2,6 @@ package com.ksyun.ks3.services.handler;
 
 import com.google.gson.Gson;
 import com.ksyun.ks3.exception.Ks3Error;
-import com.ksyun.ks3.model.result.BucketPolicy;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -10,7 +9,7 @@ public abstract class GetBucketPolicyResponceHandler extends Ks3HttpResponceHand
 
     public abstract void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable);
 
-    public abstract void onSuccess(int statesCode, Header[] responceHeaders, BucketPolicy policy);
+    public abstract void onSuccess(int statesCode, Header[] responceHeaders, String policy);
 
 
     @Override
@@ -40,12 +39,11 @@ public abstract class GetBucketPolicyResponceHandler extends Ks3HttpResponceHand
     public final void onCancel() {
     }
 
-    private BucketPolicy parseKJsop(cz.msebera.android.httpclient.Header[] responceHeaders, byte[] response) {
+    private String parseKJsop(cz.msebera.android.httpclient.Header[] responceHeaders, byte[] response) {
 
-        BucketPolicy bucketPolicy = null;
+        String bucketPolicy = null;
         try {
-            String jsonBody = new String(response);
-            bucketPolicy = new Gson().fromJson(jsonBody, BucketPolicy.class);
+            bucketPolicy = new String(response);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -6,7 +6,7 @@ import java.util.List;
 public class RequestUtils {
 	public static List<String> subResource = Arrays.asList(new String[]{"acl", "lifecycle", "location", "crr",
 			"logging", "notification", "partNumber", 
-            "policy", "requestPayment", "torrent", "uploadId", "uploads", "versionId",
+            "policy", "requestPayment", "torrent", "uploadId", "uploads", "versionId","quota",
             "versioning", "versions", "website", "delete", "thumbnail"});
 	
 	public static List<String> QueryParam = Arrays.asList(new String[]{"response-content-type",

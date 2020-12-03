@@ -8,6 +8,7 @@ import cz.msebera.android.httpclient.Header;
 
 import android.content.Context;
 
+import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.Bucket;
 import com.ksyun.ks3.model.ObjectListing;
@@ -23,6 +24,7 @@ import com.ksyun.ks3.model.result.GetObjectResult;
 import com.ksyun.ks3.model.result.HeadObjectResult;
 import com.ksyun.ks3.model.result.InitiateMultipartUploadResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
+import com.ksyun.ks3.model.result.PutAdpResult;
 import com.ksyun.ks3.services.handler.AbortMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.CompleteMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.CopyObjectResponseHandler;
@@ -55,6 +57,7 @@ import com.ksyun.ks3.services.request.DeleteBucketQuotaRequest;
 import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteBucketRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
+import com.ksyun.ks3.services.request.GetAdpRequest;
 import com.ksyun.ks3.services.request.GetBucketACLRequest;
 import com.ksyun.ks3.services.request.GetBucketPolicyRequest;
 import com.ksyun.ks3.services.request.GetBucketQuotaRequest;
@@ -68,6 +71,7 @@ import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.services.request.ListBucketsRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
+import com.ksyun.ks3.services.request.PutAdpRequest;
 import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
 import com.ksyun.ks3.services.request.PutBuckeQuotaRequest;
 import com.ksyun.ks3.services.request.PutBucketACLRequest;
@@ -75,6 +79,7 @@ import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
+import com.ksyun.ks3.services.request.adp.AdpTask;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 public class Ks3Client implements Ks3 {
@@ -643,6 +648,14 @@ public class Ks3Client implements Ks3 {
 
     public void deleteBucketQuota(DeleteBucketQuotaRequest request,
                                   Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+
+    public void putAdpTask(PutAdpRequest request, Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+
+    public void getAdpTask(GetAdpRequest request,Ks3HttpResponceHandler handler){
         this.invoke(auth, request, handler, true);
     }
 

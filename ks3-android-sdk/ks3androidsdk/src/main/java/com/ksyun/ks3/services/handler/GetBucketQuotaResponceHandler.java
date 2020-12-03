@@ -3,6 +3,16 @@ package com.ksyun.ks3.services.handler;
 import com.google.gson.Gson;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.result.BucketQuota;
+import com.ksyun.ks3.model.result.ReplicationRule;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -15,7 +25,7 @@ public abstract class GetBucketQuotaResponceHandler extends Ks3HttpResponceHandl
 
     @Override
     public final void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
-        this.onSuccess(statesCode, responceHeaders, parseKJsop(responceHeaders, response));
+        this.onSuccess(statesCode, responceHeaders, parseaXML(responceHeaders, response));
     }
 
     @Override
@@ -40,16 +50,49 @@ public abstract class GetBucketQuotaResponceHandler extends Ks3HttpResponceHandl
     public final void onCancel() {
     }
 
-    private BucketQuota parseKJsop(cz.msebera.android.httpclient.Header[] responceHeaders, byte[] response) {
-
-        BucketQuota bucketQuota = null;
+    private BucketQuota parseaXML(cz.msebera.android.httpclient.Header[] responceHeaders, byte[] response) {
+        XmlPullParserFactory factory;
+        BucketQuota quota = null;
         try {
-            String jsonBody = new String(response);
-            bucketQuota = new Gson().fromJson(jsonBody, BucketQuota.class);
+            factory = XmlPullParserFactory.newInstance();
+            XmlPullParser parse = factory.newPullParser();
+            parse.setInput(new ByteArrayInputStream(response), "UTF-8");
+            int eventType = parse.getEventType();
+            while (XmlPullParser.END_DOCUMENT != eventType) {
+                String nodeName = parse.getName();
+                switch (eventType) {
+                    case XmlPullParser.START_DOCUMENT:
+                        break;
+                    case XmlPullParser.END_DOCUMENT:
+                        break;
+                    case XmlPullParser.START_TAG:
+                        if ("Quota".equalsIgnoreCase(nodeName)) {
+                            quota = new BucketQuota();
+                        }
+                        if ("StorageQuota".equalsIgnoreCase(nodeName)) {
+                            quota.setStorageQuota(Long.parseLong(parse.nextText()));
+                        }
+                        break;
+                    case XmlPullParser.END_TAG:
+                        if (nodeName.equalsIgnoreCase("Quota")) {
 
+                        }
+                        break;
+                    case XmlPullParser.TEXT:
+
+                        break;
+                    default:
+                        break;
+                }
+                eventType = parse.next();
+            }
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return bucketQuota;
+        return quota;
     }
 }

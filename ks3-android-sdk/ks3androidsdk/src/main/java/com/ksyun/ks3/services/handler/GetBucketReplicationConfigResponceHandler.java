@@ -68,7 +68,7 @@ public abstract class GetBucketReplicationConfigResponceHandler extends Ks3HttpR
                     case XmlPullParser.END_DOCUMENT:
                         break;
                     case XmlPullParser.START_TAG:
-                        if ("ns2:Replication".equalsIgnoreCase(nodeName)) {
+                        if ("Replication".equalsIgnoreCase(nodeName)) {
                             replicationRule = new ReplicationRule();
                         }
                         if ("prefix".equalsIgnoreCase(nodeName)) {
@@ -90,7 +90,7 @@ public abstract class GetBucketReplicationConfigResponceHandler extends Ks3HttpR
                         }
                         break;
                     case XmlPullParser.END_TAG:
-                        if (nodeName.equalsIgnoreCase("ns2:Replication")) {
+                        if (nodeName.equalsIgnoreCase("Replication")) {
 
                         }
                         break;

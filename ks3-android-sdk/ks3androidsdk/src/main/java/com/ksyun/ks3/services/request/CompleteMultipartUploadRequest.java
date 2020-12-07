@@ -21,7 +21,9 @@ import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.model.Part;
 import com.ksyun.ks3.model.PartETag;
 import com.ksyun.ks3.model.result.ListPartsResult;
+import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.util.Constants;
+import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.StringUtils;
 
 public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
@@ -31,6 +33,16 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 	private String callBackUrl;
 	private String callBackBody;
 	private Map<String,String> callBackHeaders;
+
+	/**
+	 * 要进行的处理任务
+	 */
+	private List<Adp> adps = new ArrayList<Adp>();
+
+	/**
+	 * 数据处理任务完成后通知的url
+	 */
+	private String notifyURL;
 	
 	public CompleteMultipartUploadRequest(String bucketname, String objectkey,String uploadId, List<PartETag> eTags) {
 		this.setBucketname(bucketname);
@@ -38,6 +50,17 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 		this.uploadId = uploadId;
 		if (eTags != null)
 			this.partETags = eTags;
+	}
+
+	public CompleteMultipartUploadRequest(String bucketname, String objectkey,String uploadId, List<PartETag> eTags,List<Adp> adps) {
+		this.setBucketname(bucketname);
+		this.setObjectkey(objectkey);
+		this.uploadId = uploadId;
+		if (eTags != null)
+			this.partETags = eTags;
+		if (adps != null) {
+			this.adps = adps;
+		}
 	}
 	
 
@@ -89,6 +112,12 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 			this.addHeader(HttpHeaders.ContentLength,String.valueOf(bytes.length));
 			this.setHttpMethod(HttpMethod.POST);
 			this.addParams("uploadId", this.uploadId);
+			if (this.adps!=null){
+				this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
+				if(!StringUtils.isBlank(notifyURL))
+					this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL,false));
+			}
+
 			if(!StringUtils.isBlank(this.callBackUrl) && !StringUtils.isBlank(this.callBackBody)){
 				this.addHeader(HttpHeaders.XKssCallBackUrl, this.callBackUrl);
 				this.addHeader(HttpHeaders.XKssCallBackBody,this.callBackBody);
@@ -158,5 +187,21 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 
 	public void setCallBackBody(String callBackBody) {
 		this.callBackBody = callBackBody;
+	}
+
+	public List<Adp> getAdps() {
+		return adps;
+	}
+
+	public void setAdps(List<Adp> adps) {
+		this.adps = adps;
+	}
+
+	public String getNotifyURL() {
+		return notifyURL;
+	}
+
+	public void setNotifyURL(String notifyURL) {
+		this.notifyURL = notifyURL;
 	}
 }

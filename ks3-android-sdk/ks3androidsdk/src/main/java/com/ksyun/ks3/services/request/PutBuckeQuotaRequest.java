@@ -39,7 +39,7 @@ public class PutBuckeQuotaRequest extends Ks3HttpRequest {
         this.setHttpMethod(HttpMethod.PUT);
         this.addParams("quota", "");
         XmlWriter writer = new XmlWriter();
-        writer.startWithNs("Quota");
+        writer.start("Quota");
         writer.start("StorageQuota").value(String.valueOf(this.bucketQuota.getStorageQuota())).end();
         writer.end();
         String xml = writer.toString();

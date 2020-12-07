@@ -49,6 +49,7 @@ public class PutBucketReplicationConfigRequest extends Ks3HttpRequest {
             writer.start("DeleteMarkerStatus").value(ReplicationRule.DISABLED).end();
         }
         writer.start("targetBucket").value(replicationRule.getTargetBucket()).end();
+        writer.start("region").value(replicationRule.getRegion()).end();
         writer.end();
         String xml = writer.toString();
         this.addHeader(HttpHeaders.ContentMD5, Md5Utils.md5AsBase64(xml.getBytes()));

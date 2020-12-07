@@ -45,6 +45,8 @@ import com.ksyun.ks3.services.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
+import com.ksyun.ks3.services.request.adp.Adp;
+import com.ksyun.ks3.services.request.adp.PutAdpRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +56,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +64,8 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import cz.msebera.android.httpclient.Header;
+
+import static com.ks3.demo.main.Constants.SRC_BUCKETNAME;
 
 /**
  * Upload相关API使用示例，Initiate Multipart Upload，Upload Part，List Parts， Complete
@@ -416,6 +421,12 @@ public class UploadActivity extends Activity implements OnItemClickListener {
             InputStream input = connection.getInputStream();
             ObjectMetadata  objectMetadata =  ObjectMetadataBuilder.build(connection.getHeaderFields());
             final PutObjectRequest requestTwo = new PutObjectRequest(bucketName,objectKey, input, objectMetadata);
+            Adp adp = new Adp();
+            adp.setBucket("cqc-test-b");
+            adp.setCommand("tag=avinfo");
+            adp.setKey("1603423726462223-1.mp3");
+            requestTwo.setNotifyURL("http://127.0.0.1:9000/notify/url");
+            requestTwo.setAdps(Arrays.asList(adp));
             client.putObject(requestTwo, new PutObjectResponseHandler() {
 
                 @Override
@@ -462,7 +473,7 @@ public class UploadActivity extends Activity implements OnItemClickListener {
     // 上传文件
     private void doSingleUpload(final String bucketName, final UploadFile item) {
         final PutObjectRequest request = new PutObjectRequest(bucketName,
-                "app/0/离职证明.doc", item.file);
+                "test.3gp", item.file);
 
 
 //		Map<String,String> customParams = new HashMap<String, String>();
@@ -470,6 +481,12 @@ public class UploadActivity extends Activity implements OnItemClickListener {
 //		customParams.put("kss-location", "user_input_location");
 //		customParams.put("kss-name", "user_input_name");
 //		request.setCallBack("http://127.0.0.1:19091/kss/call_back", "objectKey=${key}&etag=${etag}&location=${kss-location}&name=${kss-name}", customParams);
+        Adp adp = new Adp();
+        adp.setBucket(SRC_BUCKETNAME);
+        adp.setCommand("tag=avop&f=mp4&res=1080x720&vbr=1000k&abr=64k");
+        adp.setKey("yt/啊啊.3gp");
+        request.setNotifyURL("http://127.0.0.1:9000/notify/url");
+        request.setAdps(Arrays.asList(adp));
         client.putObject(request, new PutObjectResponseHandler() {
 
             @Override
@@ -774,6 +791,7 @@ public class UploadActivity extends Activity implements OnItemClickListener {
 
     private void completeUploadPart(
             final CompleteMultipartUploadRequest request, final UploadFile item) {
+
         client.completeMultipartUpload(request,
                 new CompleteMultipartUploadResponseHandler() {
                     @Override

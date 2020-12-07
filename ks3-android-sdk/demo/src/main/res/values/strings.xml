@@ -28,6 +28,7 @@
         <item>Put BucketReplication</item>
         <item>Put BucketPolicy</item>
         <item>Put BucketQuota</item>
+        <item>Put and Get Adp</item>
     </string-array>
     <string name="title_activity_multi_upload">MultiUploadActivity</string>
     <string name="large_text">

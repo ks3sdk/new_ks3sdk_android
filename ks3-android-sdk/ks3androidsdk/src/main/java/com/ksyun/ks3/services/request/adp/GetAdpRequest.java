@@ -1,16 +1,14 @@
-package com.ksyun.ks3.services.request;
+package com.ksyun.ks3.services.request.adp;
 
 import com.ksyun.ks3.exception.Ks3ClientException;
+import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
+import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.util.StringUtils;
 
 /**
- * @author lijunwei[lijunwei@kingsoft.com]  
- * 
- * @date 2015年2月2日 下午5:08:36
- * 
- * @description 查询数据处理任务的状态
- **/
+ * 查询数据处理任务的状态
+ */
 public class GetAdpRequest extends Ks3HttpRequest {
 
 	/**
@@ -25,6 +23,7 @@ public class GetAdpRequest extends Ks3HttpRequest {
 	protected void setupRequest() throws Ks3ClientException {
 		this.setHttpMethod(HttpMethod.GET);
 		this.addParams("queryadp", "");
+		this.setObjectkey(taskid);
 	}
 
 	@Override

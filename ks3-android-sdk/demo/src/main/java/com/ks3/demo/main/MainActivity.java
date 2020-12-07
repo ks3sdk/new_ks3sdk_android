@@ -3,7 +3,6 @@ package com.ks3.demo.main;
 import android.app.AlertDialog.Builder;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -32,6 +31,7 @@ import com.ksyun.ks3.model.result.BucketQuota;
 import com.ksyun.ks3.model.result.CopyResult;
 import com.ksyun.ks3.model.result.HeadObjectResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
+import com.ksyun.ks3.model.result.PutAdpResult;
 import com.ksyun.ks3.model.result.ReplicationRule;
 import com.ksyun.ks3.model.result.policy.BucketPolicyConditionRule;
 import com.ksyun.ks3.model.result.policy.BucketPolicyRule;
@@ -47,6 +47,7 @@ import com.ksyun.ks3.services.handler.GetBucketPolicyResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketQuotaResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
+import com.ksyun.ks3.services.handler.GetObjectAdpResponceHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
 import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
@@ -56,22 +57,24 @@ import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
 import com.ksyun.ks3.services.handler.PutObjectACLResponseHandler;
+import com.ksyun.ks3.services.handler.PutObjectAdpResponceHandler;
 import com.ksyun.ks3.services.handler.PutObjectResponseHandler;
 import com.ksyun.ks3.services.request.DeleteBucketPolicyRequest;
 import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
-import com.ksyun.ks3.services.request.GetAdpRequest;
 import com.ksyun.ks3.services.request.GetBucketPolicyRequest;
 import com.ksyun.ks3.services.request.GetBucketQuotaRequest;
 import com.ksyun.ks3.services.request.GetBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
-import com.ksyun.ks3.services.request.PutAdpRequest;
 import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
 import com.ksyun.ks3.services.request.PutBuckeQuotaRequest;
 import com.ksyun.ks3.services.request.PutBucketACLRequest;
 import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.adp.Adp;
+import com.ksyun.ks3.services.request.adp.AdpTask;
+import com.ksyun.ks3.services.request.adp.GetAdpRequest;
+import com.ksyun.ks3.services.request.adp.PutAdpRequest;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -80,6 +83,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
+
+import static com.ks3.demo.main.Constants.*;
 
 /**
  * 包含一系列资源管理操作Api使用示例
@@ -105,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int PUT_OBJECT_ACL = 11;
     public static final int LIST_OBJECTS = 12;
     public static final int COPY_OBJECT = 17;
+    public static final int PUT_OBJECT_ADP = 21;
     // Upload
     public static final int UPLOAD = 13;
     // Download
@@ -223,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
                         copyObject();
                         break;
                     case PUT_BUCKET_CRR:
+                       // getBucketCrr();
+                       // deleteBucketCrr();
                         putBucketCrr();
                         break;
                     case PUT_BUCKET_QUOTA:
@@ -231,7 +239,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case PUT_BUCKET_POLICY:
                         putBucketPolicy();
-
+                        break;
+                    case PUT_OBJECT_ADP:
+                        testPutAndQueryAdp();
                         break;
                     default:
                         break;
@@ -288,8 +298,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void putObject() {
-        final File file = new File(Environment.getExternalStorageDirectory()
-                + File.separator + Constants.TEST_IMG);
+        final File file = new File(Constants.TEST_MULTIUPLOAD_FILE);
 
         bucketObjectInpuDialog
                 .setOnBucketObjectDialogListener(new OnBucketObjectDialogListener() {
@@ -1198,21 +1207,22 @@ public class MainActivity extends AppCompatActivity {
         prefixList.add("test");
         rule.setPrefixList(prefixList);
         rule.setTargetBucket("qichao-bja");
+        rule.setRegion("BJA");
         rule.setDeleteMarkerStatus(false);
 
-        client.putBucketCrr(new PutBucketReplicationConfigRequest("jiangrantest", rule), new PutBucketReplicationResponceHandler() {
+        client.putBucketCrr(new PutBucketReplicationConfigRequest("cqc-test-b", rule), new PutBucketReplicationResponceHandler() {
             @Override
             public void onSuccess(int statesCode,
                                   Header[] responceHeaders) {
-//                Intent intent = new Intent(MainActivity.this,
-//                        RESTAPITestResult.class);
-//                Bundle data = new Bundle();
-//                data.putString(RESULT, "success");
-//                data.putString(API, "PutBucketCRR  Result");
-//                intent.putExtras(data);
-//                startActivity(intent);
-//                Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
-                deleteBucketCrr();
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, "success");
+                data.putString(API, "PutBucketCRR  Result");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+              //  deleteBucketCrr();
             }
 
             @Override
@@ -1240,7 +1250,7 @@ public class MainActivity extends AppCompatActivity {
     private void getBucketCrr() {
 
         //获取规则
-        client.getBucketCrr(new GetBucketReplicationConfigRequest("cqc-test"), new GetBucketReplicationConfigResponceHandler() {
+        client.getBucketCrr(new GetBucketReplicationConfigRequest("jiangrantest"), new GetBucketReplicationConfigResponceHandler() {
             @Override
             public void onFailure(int statesCode, Ks3Error error,
                                   Header[] responceHeaders, String response,
@@ -1281,7 +1291,7 @@ public class MainActivity extends AppCompatActivity {
     private void deleteBucketCrr() {
 
         //获取规则
-        client.deleteBucketCrr(new DeleteBucketReplicationConfigRequest("cqc-test"), new DeleteBucketReplicationConfigResponceHandler() {
+        client.deleteBucketCrr(new DeleteBucketReplicationConfigRequest("jiangrantest"), new DeleteBucketReplicationConfigResponceHandler() {
             @Override
             public void onFailure(int statesCode, Ks3Error error,
                                   Header[] responceHeaders, String response,
@@ -1493,28 +1503,97 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     /**
-     * 设置avop
+     * 音视频处理
      */
-    public void testQueryAdp() {
+    public void testPutAndQueryAdp() {
 
-        Adp adp = new Adp();
-        adp.setBucket("jiangrantest");
-        adp.setCommand("tag=avinfo");
-        adp.setKey("1603423726462223-double.mp4");
-        PutAdpRequest adpRequest = new PutAdpRequest("jiangrantest", "1603423726462223.mp4", Arrays.asList(adp));
+        String srcObjectKey =  "test/file1.mp4";
+        String newObjectKey =  "new/Upload3.mp4";
+        //音视频处理
+        Adp avop = new Adp();
+        avop.setBucket(DST_BUCKETNAME);
+        avop.setCommand("tag=avop&f=mp4&res=1080x720&vbr=1000k&abr=64k");
+        avop.setKey(newObjectKey);
+
+        //视频截图
+        Adp avscrnshot = new Adp();
+        avscrnshot.setBucket(DST_BUCKETNAME);
+        avscrnshot.setCommand("tag=avscrnshot&ss=10&res=640x360&rotate=90");
+        avscrnshot.setKey(newObjectKey);
+
+        //视频采样截图
+        Adp avsample = new Adp();
+        avsample.setBucket(DST_BUCKETNAME);
+        avsample.setCommand("tag=avsample&ss=5&t=30&res=640x360&rotate=90&interval=5&pattern=5oiq5Zu+LSUzZC5qcGc=");
+        avsample.setKey(newObjectKey);
+
+        //音视频切片
+        Adp avm3u8 = new Adp();
+        avm3u8.setBucket(DST_BUCKETNAME);
+        avm3u8.setCommand("tag=avm3u8&segtime=10&abr=128k&vbr=1000k&res=1280x720");
+        avm3u8.setKey(newObjectKey);
+
+        //视频拼接
+        Adp avconcat = new Adp();
+        avconcat.setBucket(DST_BUCKETNAME);
+        avconcat.setCommand("tag=avconcat&f=mp4&mode=1&file=" +  com.ksyun.ks3.util.Base64.encode("test/file2.mp4".getBytes()));
+        avconcat.setKey(newObjectKey);
+
+        PutAdpRequest adpRequest = new PutAdpRequest(SRC_BUCKETNAME, srcObjectKey, Arrays.asList(avconcat));
         adpRequest.setNotifyURL("http://127.0.0.1:9000/notify/url");
 
-        GetAdpRequest getAdpRequest = new GetAdpRequest("00SFRuzjrZ22");
-        client.getAdpTask(getAdpRequest, new Ks3HttpResponceHandler() {
+        //音视频元数据获取
+//        GetAdpRequest getAdpRequest = new GetAdpRequest("taskId");
+//        client.getAdpTask(getAdpRequest, new GetObjectAdpResponceHandler() {
+//            @Override
+//            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+//                StringBuffer stringBuffer = new StringBuffer();
+//                stringBuffer.append(
+//                        "getAdpRequest fail , states code :" + statesCode)
+//                        .append("\n").append("responce :").append(response);
+//                stringBuffer.append("Exception :"
+//                        + paramThrowable.toString());
+//                Intent intent = new Intent(MainActivity.this,
+//                        RESTAPITestResult.class);
+//                Bundle data = new Bundle();
+//                data.putString(RESULT, stringBuffer.toString());
+//                data.putString(API, "getAdpRequest");
+//                intent.putExtras(data);
+//                startActivity(intent);
+//                Log.e("tag", "getAdpRequest--onFailure:" + stringBuffer.toString());
+//            }
+//
+//            @Override
+//            public void onSuccess(int statesCode, Header[] responceHeaders, AdpTask adpTask) {
+//                System.out.println("getAdpTask is " + adpTask.toString());
+//            }
+//        });
+
+        //发送请求
+        client.putAdpTask(adpRequest, new PutObjectAdpResponceHandler() {
             @Override
-            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
-                super.onSuccess(statesCode, responceHeaders, response);
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append(
+                        "putAdpTask fail , states code :" + statesCode)
+                        .append("\n").append("responce :").append(response);
+                stringBuffer.append("Exception :"
+                        + paramThrowable.toString());
+                Intent intent = new Intent(MainActivity.this,
+                        RESTAPITestResult.class);
+                Bundle data = new Bundle();
+                data.putString(RESULT, stringBuffer.toString());
+                data.putString(API, "putAdpTask");
+                intent.putExtras(data);
+                startActivity(intent);
+                Log.e("tag", "putAdpTask--onFailure:" + stringBuffer.toString());
             }
 
             @Override
-            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
-                super.onFailure(statesCode, responceHeaders, response, throwable);
+            public void onSuccess(int statesCode, Header[] responceHeaders, PutAdpResult adpResult) {
+                System.out.println("taskId is " + adpResult.getTaskId());
             }
         });
+
     }
 }

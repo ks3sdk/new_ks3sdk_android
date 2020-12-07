@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,9 @@ import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
 import com.ksyun.ks3.model.transfer.MD5DigestCalculatingInputStream;
 import com.ksyun.ks3.model.transfer.RepeatableFileInputStream;
+import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.util.Constants;
+import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.LengthCheckInputStream;
 import com.ksyun.ks3.util.Md5Utils;
 import com.ksyun.ks3.util.StringUtils;
@@ -42,6 +45,16 @@ public class PutObjectRequest extends Ks3HttpRequest implements
     private String callBackUrl;
     private String callBackBody;
     private Map<String, String> callBackHeaders;
+
+    /**
+     * 要进行的处理任务
+     */
+    private List<Adp> adps = new ArrayList<Adp>();
+
+    /**
+     * 数据处理任务完成后通知的url
+     */
+    private String notifyURL;
 
     public InputStream getInputStream() {
         return inputStream;
@@ -71,6 +84,22 @@ public class PutObjectRequest extends Ks3HttpRequest implements
         this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
     }
 
+    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata,List<Adp> adps) {
+        this.setBucketname(bucketname);
+        this.setObjectkey(key);
+        this.setInputStream(inputStream);
+        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
+        if (adps != null) {
+            this.adps = adps;
+        }
+    }
+
+    public void setCallBack(String callBackUrl, String callBackBody, Map<String, String> callBackHeaders, String notifyURL) {
+        this.callBackUrl = callBackUrl;
+        this.callBackBody = callBackBody;
+        this.callBackHeaders = callBackHeaders;
+        this.notifyURL  = notifyURL;
+    }
     public void setCallBack(String callBackUrl, String callBackBody, Map<String, String> callBackHeaders) {
         this.callBackUrl = callBackUrl;
         this.callBackBody = callBackBody;
@@ -132,6 +161,12 @@ public class PutObjectRequest extends Ks3HttpRequest implements
             }
         } else {
             Log.d(Constants.LOG_TAG, "the callbacurl or callbackbody is null , ignore set the callback");
+        }
+
+        if (this.adps!=null){
+            this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
+            if(!StringUtils.isBlank(notifyURL))
+                this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL,false));
         }
 
         for (Entry<Meta, String> entry : this.objectMeta.getMetadata()
@@ -274,6 +309,21 @@ public class PutObjectRequest extends Ks3HttpRequest implements
 
     public void setCallBackHeaders(Map<String, String> callBackHeaders) {
         this.callBackHeaders = callBackHeaders;
+    }
+    public List<Adp> getAdps() {
+        return adps;
+    }
+
+    public void setAdps(List<Adp> adps) {
+        this.adps = adps;
+    }
+
+    public String getNotifyURL() {
+        return notifyURL;
+    }
+
+    public void setNotifyURL(String notifyURL) {
+        this.notifyURL = notifyURL;
     }
 
     public String getMd5() {

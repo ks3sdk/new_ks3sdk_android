@@ -1,9 +1,9 @@
-package com.ksyun.ks3.services.request;
+package com.ksyun.ks3.services.request.adp;
 
 import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
-import com.ksyun.ks3.services.request.adp.Adp;
+import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.StringUtils;
 
@@ -11,12 +11,12 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * 添加数据处理任务
  */
-public class PutAdpRequest extends Ks3HttpRequest{
-	private String bucket;
-	private String key;
+public class PutAdpRequest extends Ks3HttpRequest {
+
 	/**
 	 * 要进行的处理任务
 	 */
@@ -31,13 +31,14 @@ public class PutAdpRequest extends Ks3HttpRequest{
 	 * @param key 要处理的数据的key
 	 */
 	public PutAdpRequest(String bucketName,String key){
-		this.bucket = bucketName;
-		this.key = key;
+		setBucketname(bucketName);
+		setObjectkey(key);
 	}
 	/**
 	 * 
 	 * @param bucketName 要处理的数据所在bucket
 	 * @param key 要处理的数据的key
+	 * @param adps 数据处理指令
 	 */
 	public PutAdpRequest(String bucketName,String key,List<Adp> adps){
 		this(bucketName,key);
@@ -55,9 +56,9 @@ public class PutAdpRequest extends Ks3HttpRequest{
 
 	@Override
 	public void validateParams() throws IllegalArgumentException {
-		if(StringUtils.isBlank(this.bucket))
-			throw new Ks3ClientException ("bucketname");
-		if(StringUtils.isBlank(this.key))
+		if(StringUtils.isBlank(this.getBucketname()))
+			throw new Ks3ClientException("bucketname");
+		if(StringUtils.isBlank(this.getObjectkey()))
 			throw new Ks3ClientException("objectkey");
 		if(adps==null){
 			throw new Ks3ClientException("adps");
@@ -70,19 +71,6 @@ public class PutAdpRequest extends Ks3HttpRequest{
 		}
 		if(StringUtils.isBlank(notifyURL))
 			throw new Ks3ClientException("notifyURL");
-	}
-
-	public String getBucket() {
-		return bucket;
-	}
-	public void setBucket(String bucket) {
-		this.bucket = bucket;
-	}
-	public String getKey() {
-		return key;
-	}
-	public void setKey(String key) {
-		this.key = key;
 	}
 	public List<Adp> getAdps() {
 		return adps;

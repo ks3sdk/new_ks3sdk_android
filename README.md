@@ -263,6 +263,8 @@ onCalculateAuth（）回调方法参数说明：
 * [Get Bucket ACL](#get-bucket-acl) 获取Bucket的ACL
 * [Put Bucket ACL](#put-bucket-acl) 设置Bucket的ACL
 * [Head Bucket](#head-bucket) 查询是否已经存在指定Bucket
+* [Put Bucket CRR](#put-bucket-crr)设置跨区域复制规则
+* [Get Bucket CRR](#get-bucket-crr)获取跨区域复制规则
 * [Get Object](#get-object) 下载Object数据
 * [Head Object](#head-object) 查询是否已经存在指定Object
 * [Delete Object](#delete-object) 删除指定Object
@@ -871,6 +873,96 @@ public void headBucket(HeadBucketRequest request,HeadBucketResponseHandler resul
 		);
 
 ```
+
+
+#put-bucket-crr
+
+####Put Bucket CRR：
+
+*设置跨区域规则
+
+**方法名：** 
+
+public void putBucketCrr(String bucketname,PutBucketReplicationResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* bucketname：指定的Bucket名称
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* responce：失败时返回的响应正文
+* Throwable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+		client.putBucketCrr(Constants.BucketName,
+				new PutBucketReplicationResponceHandler() {
+
+					@Override
+					public void onSuccess(int statesCode,
+							Header[] responceHeaders) {
+					}
+
+					@Override
+					public void onFailure(int statesCode,
+							Header[] responceHeaders, String response,
+							Throwable paramThrowable) {
+					}
+				}
+		);
+
+```
+
+*获取Bucket跨区域规则*
+
+#get-bucket-crr
+
+####Get Bucket CRR：
+
+**方法名：** 
+
+public void getBucketCrr(GetBucketReplicationConfigRequest request,GetBucketReplicationConfigResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：HeadBucketRequest对象
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* replicationRule：跨区域规则
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+		client.getBucketCrr(new GetBucketReplicationConfigRequest（Constants.BucketName,
+				new GetBucketReplicationConfigResponceHandler() {
+
+					@Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, ReplicationRule replicationRule) {
+                Log.e("tag", "getBucketCRR--onSuccess---" + "statesCode:" + statesCode);
+            }
+
+					@Override
+					public void onFailure(int statesCode,
+							Header[] responceHeaders, String response,
+							Throwable paramThrowable) {
+					}
+				}
+		);
+
+```
+
+
+
 ###Object操作
 ####Get Object：
 
@@ -1800,7 +1892,7 @@ public void copyObject(CopyObjectRequest request,CopyObjectResponseHandler resul
 ````
 
 ####Initiate Multipart Upload：
- 
+
 *调用这个接口会初始化一个分块上传，KS3 Server会返回一个upload id, upload id 用来标识属于当前object的具体的块，并且用来标识完成分块上传或者取消分块上传*
 
 **方法名：** 

@@ -265,6 +265,12 @@ onCalculateAuth（）回调方法参数说明：
 * [Head Bucket](#head-bucket) 查询是否已经存在指定Bucket
 * [Put Bucket CRR](#put-bucket-crr)设置跨区域复制规则
 * [Get Bucket CRR](#get-bucket-crr)获取跨区域复制规则
+* [Get Bucket QUOTA](#get-bucket-quota)设置桶配额
+* [Get Bucket QUOTA](#get-bucket-quota)获取桶配额
+* [Delete Bucket QUOTA](#get-bucket-quota)删除桶配额
+* [Get Bucket POLICY](#get-bucket-policy)设置空间策略
+* [Get Bucket POLICY](#get-bucket-policy)获取空间策略
+* [Delete Bucket POLICY](#get-bucket-policy)删除空间策略
 * [Get Object](#get-object) 下载Object数据
 * [Head Object](#head-object) 查询是否已经存在指定Object
 * [Delete Object](#delete-object) 删除指定Object
@@ -279,6 +285,7 @@ onCalculateAuth（）回调方法参数说明：
 * [Abort Multipart Upload](#abort-multipart-upload) 取消分块上传
 * [Complete Multipart Upload](#complete-multipart-upload) 组装所有分块上传的文件
 * [Multipart Upload Example Code](#multipart-upload-example-code) 分片上传代码示例
+* [音视频使用示例](#音视频使用示例) 代码示例
 
 ###Service操作
 
@@ -931,7 +938,7 @@ public void getBucketCrr(GetBucketReplicationConfigRequest request,GetBucketRepl
 **参数说明：**
 
 * resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
-* request：HeadBucketRequest对象
+* request：GetBucketReplicationConfigRequest
 
 **回调参数：**
 
@@ -961,7 +968,245 @@ public void getBucketCrr(GetBucketReplicationConfigRequest request,GetBucketRepl
 
 ```
 
+*设置Bucket桶配额*
 
+#put-bucket-quota
+
+####Put Bucket QUOTA：
+
+**方法名：** 
+
+public void putBucketQuota(PutBuckeQuotaRequest request,Ks3HttpResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：PutBuckeQuotaRequest
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* response：响应体
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	        BucketQuota quota = new BucketQuota(1000000);
+
+        PutBuckeQuotaRequest quotaRequest = new PutBuckeQuotaRequest(Constants.BucketName, quota);
+
+        client.putBucketQuota(quotaRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+                System.out.println("onSuccess "+ new String(response));
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                Log.e("tag", "putBucketQuota--onFailure:" + stringBuffer.toString());
+            }
+        });
+
+```
+
+#get-bucket-quota
+
+####Get Bucket QUOTA：
+
+**方法名：** 
+
+public void getBucketQuota(GetBucketQuotaRequest request,GetBucketQuotaResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：GetBucketQuotaRequest
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* quota :BucketQuota
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	     GetBucketQuotaRequest quotaRequest = new GetBucketQuotaRequest(Constants.BucketName);
+         client.getBucketQuota(quotaRequest, new GetBucketQuotaResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                Log.e("tag", "getBucketQuota--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, BucketQuota quota) {
+                System.out.println("onSuccess storageQuota  is "+ quota.getStorageQuota());
+            }
+        });
+```
+
+#delete-bucket-quota
+
+####Delete Bucket QUOTA：
+
+**方法名：** 
+
+public void deleteBucketQuota(DeleteBucketQuotaRequest request,Ks3HttpResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：DeleteBucketQuotaRequest
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* response：响应体
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	     DeleteBucketQuotaRequest quotaRequest = new DeleteBucketQuotaRequest(Constants.BucketName);
+         client.deleteBucketQuota(quotaRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                Log.e("tag", "getBucketQuota--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, BucketQuota quota) {
+                System.out.println("onSuccess storageQuota  is "+ quota.getStorageQuota());
+            }
+        });
+```
+
+
+*设置Bucket空间策略*
+
+#put-bucket-policy
+
+####Put Bucket POLICY：
+
+**方法名：** 
+
+public void putBucketPolicy(PutBuckePolicyRequest request,Ks3HttpResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：PutBuckePolicyRequest
+* policyRule：BucketPolicyRule
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* response：响应体
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	     BucketPolicyRule policyRule = new BucketPolicyRule()
+                .addAllAction()
+                .addPrincipalByAccountId("AccountId")
+                .addPrincipalByAccountIdAndUserName("123123", "123123")
+                .addBucketResource(Constants.BucketName)
+                .addConditionSouceIp("11.11.11.11", true)
+                .addSourceHeader("Connection: keep-alivE", BucketPolicyConditionRule.StringLike)
+                .addSourceHeader("Connection: keep-alivE123", BucketPolicyConditionRule.StringEquals)
+                .setEffect("Allow");
+
+        PutBuckePolicyRequest putBuckePolicyRequest = new PutBuckePolicyRequest(Constants.BucketName), policyRule);
+        client.putBucketPolicy(putBuckePolicyRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+            }
+        });
+```
+
+#get-bucket-policy
+
+####Get Bucket POLICY：
+
+**方法名：** 
+
+public void getBucketPolicy(GetBucketPolicyRequest request,GetBucketPolicyResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：GetBucketPolicyRequest
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* policy:String
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	     GetBucketPolicyRequest request = new GetBucketPolicyRequest(Constants.BucketName);
+         client.getBucketPolicy(request, new GetBucketPolicyResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                Log.e("tag", "getBucketQuota--onFailure:" + stringBuffer.toString());
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, String policy) {
+                System.out.println("success ! policy is : " + policy);
+            }
+        });
+```
+
+#delete-bucket-policy
+
+####Delete Bucket POLICY：
+
+**方法名：** 
+
+public void deleteBucketPolicy(DeleteBucketPolicyRequest request,Ks3HttpResponceHandler resultHandler) throws Ks3ClientException,Ks3ServiceException{}
+
+**参数说明：**
+
+* resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
+* request：DeleteBucketPolicyRequest
+
+**回调参数：**
+
+* statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
+* responceHeader:Http请求响应报头
+* response：响应体
+* paramThrowable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
+
+**代码示例：**
+
+```
+	   DeleteBucketPolicyRequest request = new DeleteBucketPolicyRequest(Constants.BucketName);
+        client.deleteBucketPolicy(request, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+                System.out.println("onSuccess  statesCode is " + statesCode);
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                System.out.println("onFailure  statesCode is " + statesCode);
+            }
+
+        });
+```
 
 ###Object操作
 ####Get Object：
@@ -2586,6 +2831,76 @@ public void completeMultipartUpload(CompleteMultipartUploadRequest request, Comp
 		}
 	}
 
+````
+
+
+
+####音视频使用示例：
+
+````
+    /**
+     * 音视频处理
+     */
+    public void testPutAndQueryAdp() {
+
+        String srcObjectKey =  "test/file1.mp4";
+        String newObjectKey =  "new/Upload3.mp4";
+        //音视频处理
+        Adp avop = new Adp();
+        avop.setBucket(DST_BUCKETNAME);
+        avop.setCommand("tag=avop&f=mp4&res=1080x720&vbr=1000k&abr=64k");
+        avop.setKey(newObjectKey);
+
+        //视频截图
+        Adp avscrnshot = new Adp();
+        avscrnshot.setBucket(DST_BUCKETNAME);
+        avscrnshot.setCommand("tag=avscrnshot&ss=10&res=640x360&rotate=90");
+        avscrnshot.setKey(newObjectKey);
+
+        //视频采样截图
+        Adp avsample = new Adp();
+        avsample.setBucket(DST_BUCKETNAME);
+        avsample.setCommand("tag=avsample&ss=5&t=30&res=640x360&rotate=90&interval=5&pattern=5oiq5Zu+LSUzZC5qcGc=");
+        avsample.setKey(newObjectKey);
+
+        //音视频切片
+        Adp avm3u8 = new Adp();
+        avm3u8.setBucket(DST_BUCKETNAME);
+        avm3u8.setCommand("tag=avm3u8&segtime=10&abr=128k&vbr=1000k&res=1280x720");
+        avm3u8.setKey(newObjectKey);
+
+        //视频拼接
+        Adp avconcat = new Adp();
+        avconcat.setBucket(DST_BUCKETNAME);
+        avconcat.setCommand("tag=avconcat&f=mp4&mode=1&file=" +  					com.ksyun.ks3.util.Base64.encode("test/file2.mp4".getBytes()));
+        avconcat.setKey(newObjectKey);
+
+        PutAdpRequest adpRequest = new PutAdpRequest(SRC_BUCKETNAME, srcObjectKey, Arrays.asList(avconcat));
+        adpRequest.setNotifyURL("http://127.0.0.1:9000/notify/url");
+
+        //音视频元数据获取
+        GetAdpRequest getAdpRequest = new GetAdpRequest("taskId");
+        client.getAdpTask(getAdpRequest, new GetObjectAdpResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, 										Throwable paramThrowable) { }
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, AdpTask adpTask) {
+               System.out.println("getAdpTask is " + adpTask.toString());
+             }
+					});
+
+        //发送请求
+        client.putAdpTask(adpRequest, new PutObjectAdpResponceHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, 										Throwable paramThrowable) {
+            }
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, PutAdpResult adpResult) {
+                System.out.println("taskId is " + adpResult.getTaskId());
+            }
+        });
+
+    }
 ````
 
 

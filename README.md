@@ -39,7 +39,7 @@ dependencies {
 ```
 
 ###SDK配置
-SDK以jar包形式呈现。将releases文件夹下*ks3-android-sdk-1.4.3.jar*，以及依赖库文件，放入工程libs文件下。
+SDK以jar包形式呈现。将releases文件夹下*ks3-android-sdk-1.4.8.jar*，以及依赖库文件，放入工程libs文件下。
 
 也可以下载源码，以Library库形式添加。
 

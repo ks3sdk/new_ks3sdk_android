@@ -89,7 +89,7 @@ public class PutObjectRequest extends Ks3HttpRequest implements
         this.setObjectkey(key);
         this.setInputStream(inputStream);
         this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (adps != null) {
+        if (adps != null && adps.size() > 0) {
             this.adps = adps;
         }
     }
@@ -163,7 +163,7 @@ public class PutObjectRequest extends Ks3HttpRequest implements
             Log.d(Constants.LOG_TAG, "the callbacurl or callbackbody is null , ignore set the callback");
         }
 
-        if (this.adps!=null){
+        if (this.adps!=null && adps.size() > 0){
             this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
             if(!StringUtils.isBlank(notifyURL))
                 this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL,false));

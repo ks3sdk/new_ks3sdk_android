@@ -2,7 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "1.4.7"
+version = "1.4.8"
+
 
 android {
     compileSdkVersion 28
@@ -37,6 +38,14 @@ task exportJar(type: Copy) {
     include('classes.jar')
     rename ('classes.jar', 'ks3-androidsdk-1.4.7.jar')
 }
+task exportJar2(type: Copy) {
+    delete 'build/libs/'+ "ks3-androidsdk-1.4.9.jar"
+    from('build/intermediates/packaged-classes/release/')
+    into('build/libs/')
+    include('classes.jar')
+    rename ('classes.jar', "ks3-androidsdk-1.4.8.jar")
+}
+
 
 dependencies {
     api 'com.loopj.android:android-async-http:1.4.9'

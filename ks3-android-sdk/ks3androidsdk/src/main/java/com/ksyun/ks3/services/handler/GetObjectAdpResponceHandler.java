@@ -1,7 +1,6 @@
 package com.ksyun.ks3.services.handler;
 
 import com.ksyun.ks3.exception.Ks3Error;
-import com.ksyun.ks3.model.result.BucketQuota;
 import com.ksyun.ks3.services.request.adp.AdpTask;
 
 import org.xmlpull.v1.XmlPullParser;

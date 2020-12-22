@@ -58,7 +58,7 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 		this.uploadId = uploadId;
 		if (eTags != null)
 			this.partETags = eTags;
-		if (adps != null) {
+		if (adps != null && adps.size() > 0) {
 			this.adps = adps;
 		}
 	}
@@ -112,7 +112,7 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 			this.addHeader(HttpHeaders.ContentLength,String.valueOf(bytes.length));
 			this.setHttpMethod(HttpMethod.POST);
 			this.addParams("uploadId", this.uploadId);
-			if (this.adps!=null){
+			if (this.adps!=null && adps.size() > 0){
 				this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
 				if(!StringUtils.isBlank(notifyURL))
 					this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL,false));

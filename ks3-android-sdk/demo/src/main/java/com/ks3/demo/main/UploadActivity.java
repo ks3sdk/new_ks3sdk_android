@@ -28,6 +28,7 @@ import com.ks3.demo.main.BucketInpuDialog.OnBucketDialogListener;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.PartETag;
+import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.result.CompleteMultipartUploadResult;
 import com.ksyun.ks3.model.result.InitiateMultipartUploadResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
@@ -474,19 +475,19 @@ public class UploadActivity extends Activity implements OnItemClickListener {
     private void doSingleUpload(final String bucketName, final UploadFile item) {
         final PutObjectRequest request = new PutObjectRequest(bucketName,
                 "test.3gp", item.file);
-
+        request.setCannedAcl(CannedAccessControlList.PublicRead);
 
 //		Map<String,String> customParams = new HashMap<String, String>();
         //自定义参数必须以kss-开头
 //		customParams.put("kss-location", "user_input_location");
 //		customParams.put("kss-name", "user_input_name");
 //		request.setCallBack("http://127.0.0.1:19091/kss/call_back", "objectKey=${key}&etag=${etag}&location=${kss-location}&name=${kss-name}", customParams);
-        Adp adp = new Adp();
-        adp.setBucket(SRC_BUCKETNAME);
-        adp.setCommand("tag=avop&f=mp4&res=1080x720&vbr=1000k&abr=64k");
-        adp.setKey("yt/啊啊.3gp");
-        request.setNotifyURL("http://127.0.0.1:9000/notify/url");
-        request.setAdps(Arrays.asList(adp));
+//        Adp adp = new Adp();
+//        adp.setBucket(SRC_BUCKETNAME);
+//        adp.setCommand("tag=avop&f=mp4&res=1080x720&vbr=1000k&abr=64k");
+//        adp.setKey("yt/啊啊.3gp");
+//        request.setNotifyURL("http://127.0.0.1:9000/notify/url");
+//        request.setAdps(Arrays.asList(adp));
         client.putObject(request, new PutObjectResponseHandler() {
 
             @Override

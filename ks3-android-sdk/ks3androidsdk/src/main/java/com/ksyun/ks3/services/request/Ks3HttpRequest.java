@@ -41,6 +41,7 @@ import com.ksyun.ks3.services.Ks3AuthHandler;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.Ks3HttpExector;
 import com.ksyun.ks3.services.ServerDateAuthListener;
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.ByteUtil;
 import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.DateUtil;
@@ -79,6 +80,7 @@ public abstract class Ks3HttpRequest implements Serializable {
 
 		ENCODED_CHARACTERS_PATTERN = Pattern.compile(pattern.toString());
 	}
+
 
 	/* url */
 	public String getUrl() {

@@ -145,6 +145,10 @@ public abstract class GetObjectResponseHandler extends
                         metaData.setExpires(value);
 
                     }
+                    else if(name.equalsIgnoreCase(Meta.XKssObjectTagCount.toString()))
+                    {
+                        metaData.setObjectTagCount(value);
+                    }
                 }
             }
             result.getObject().setObjectMetadata(metaData);

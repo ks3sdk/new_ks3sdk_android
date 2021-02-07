@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.ks3.demo.main.BucketInpuDialog.OnBucketDialogListener;
 import com.ksyun.ks3.exception.Ks3Error;
+import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.PartETag;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
@@ -48,6 +49,7 @@ import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
 import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
 
 import java.io.File;
 import java.io.IOException;
@@ -467,8 +469,6 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         } catch (Exception e) {
 			System.out.println(e.getMessage());
         }
-
-
     }
 
     // 上传文件
@@ -476,6 +476,10 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         final PutObjectRequest request = new PutObjectRequest(bucketName,
                 "test.3gp", item.file);
         request.setCannedAcl(CannedAccessControlList.PublicRead);
+        request.addHeader("","");
+
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
 
 //		Map<String,String> customParams = new HashMap<String, String>();
         //自定义参数必须以kss-开头

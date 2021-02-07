@@ -34,6 +34,7 @@ import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.GetObjectResponseHandler;
+import com.ksyun.ks3.services.handler.GetObjectTaggingResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
 import com.ksyun.ks3.services.handler.InitiateMultipartUploadResponceHandler;
@@ -77,6 +78,10 @@ import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
+import com.ksyun.ks3.services.request.object.PostObjectRequest;
+import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
+import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
+import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 public class Ks3Client implements Ks3 {
@@ -400,13 +405,13 @@ public class Ks3Client implements Ks3 {
         return this.invoke(auth, request, handler, isUseAsyncMode);
     }
 
+
     @Override
     public Ks3HttpRequest putObject(String bucketname, String objectkey,
                                     File file, PutObjectResponseHandler handler) {
         return this.putObject(
                 new PutObjectRequest(bucketname, objectkey, file), handler);
     }
-
     @Override
     public Ks3HttpRequest putObject(String bucketname, String objectkey,
                                     File file, ObjectMetadata objectmeta,
@@ -655,6 +660,20 @@ public class Ks3Client implements Ks3 {
     public void getAdpTask(GetAdpRequest request,Ks3HttpResponceHandler handler){
         this.invoke(auth, request, handler, true);
     }
+
+    public void putObjectTag(PutObjectTaggingRequest request, Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+    public void getObjectTag(GetObjectTaggingRequest request, GetObjectTaggingResponseHandler handler){
+        this.invoke(auth, request, handler, true);
+    }
+    public void postObject(PostObjectRequest request, Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+    public void putObjectFetch(PutObjectFetchRequest request, Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+
 
     private void listParts(ListPartsRequest request,
                            ListPartsResponseHandler handler, boolean isUseAsyncMode) {

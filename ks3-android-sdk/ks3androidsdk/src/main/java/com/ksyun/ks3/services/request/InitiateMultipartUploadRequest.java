@@ -15,9 +15,10 @@ import com.ksyun.ks3.model.acl.AccessControlList;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
+import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
 import com.ksyun.ks3.util.StringUtils;
 
-public class InitiateMultipartUploadRequest extends Ks3HttpRequest {
+public class InitiateMultipartUploadRequest extends Ks3HttpObjectRequest {
 	private static final long serialVersionUID = 7282026856520472721L;
 	private ObjectMetadata objectMeta = new ObjectMetadata();
 	private AccessControlList acl = new AccessControlList();
@@ -78,6 +79,7 @@ public class InitiateMultipartUploadRequest extends Ks3HttpRequest {
 						StringUtils.join(grants_write, ","));
 			}
 		}
+		this.setTagHeader();
 	}
 
 	@Override

@@ -199,5 +199,77 @@ public class StringUtils {
 		Pattern pattern = Pattern.compile("[0-9]*");
 		return pattern.matcher(string).matches();
 	}
+	public static String object2json(Object obj) {
+		return object2json(obj, false);
+	}
+
+	private static String object2json(Object obj, boolean escape) {
+		StringBuffer buffer = new StringBuffer();
+		if (obj instanceof Map) {
+			buffer.append("{");
+			Map<Object, Object> map = (Map) obj;
+			int size = map.size();
+			int count = 0;
+			for (Entry entry : map.entrySet()) {
+				buffer.append("\"" + escape(entry.getKey(), false) + "\"" + ":"
+						+ object2json(entry.getValue(), true));
+				if (count < size - 1)
+					buffer.append(",");
+				count++;
+			}
+			buffer.append("}");
+		} else if (obj instanceof Collection) {
+			buffer.append("[");
+			Collection<Object> collect = (Collection) obj;
+			int size = collect.size();
+			int count = 0;
+			for (Object o : collect) {
+				if (count == 2)
+					buffer.append(object2json(o, true));
+				else
+					buffer.append(object2json(o));
+				if (count < size - 1)
+					buffer.append(",");
+				count++;
+			}
+			buffer.append("]");
+		} else {
+			if(obj instanceof Number||obj instanceof Boolean){
+				buffer.append(obj.toString());
+			}else{
+				if (escape)
+					buffer.append("\"" + escape(obj.toString(), true) + "\"");
+				else
+					buffer.append("\"" + escape(obj.toString(), false) + "\"");
+			}
+		}
+		return buffer.toString();
+	}
+
+	private static List<Character> need = Arrays.asList(new Character[] { '\\',
+			'\"', '$', '\'' });
+	private static String escape(Object obj, boolean dollar) {
+		String s = obj.toString();
+		byte[] chars = s.getBytes();
+		int count = 0;
+		for (int i = 0; i < chars.length; i++) {
+			if (need.contains((char) chars[i])
+					&& (dollar || (char) chars[i] != '$')) {
+				count++;
+			}
+		}
+		byte[] newChars = new byte[chars.length + count];
+		for (int i = 0, j = 0; i < chars.length; i++) {
+			if (need.contains((char) chars[i])
+					&& (dollar || (char) chars[i] != '$')) {
+				newChars[i + j] = '\\';
+				newChars[i + j + 1] = chars[i];
+				j++;
+			} else {
+				newChars[i + j] = chars[i];
+			}
+		}
+		return new String(newChars);
+	}
 
 }

@@ -1,52 +1,30 @@
-package com.ksyun.ks3.services.request;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
+package com.ksyun.ks3.services.request.object;
 
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
-import com.ksyun.ks3.model.Mimetypes;
 import com.ksyun.ks3.model.ObjectMetadata;
-import com.ksyun.ks3.model.ObjectMetadata.Meta;
 import com.ksyun.ks3.model.acl.AccessControlList;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
-import com.ksyun.ks3.model.transfer.MD5DigestCalculatingInputStream;
-import com.ksyun.ks3.model.transfer.RepeatableFileInputStream;
-import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
-import com.ksyun.ks3.services.request.tag.ObjectTag;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.Constants;
-import com.ksyun.ks3.util.HttpUtils;
-import com.ksyun.ks3.util.LengthCheckInputStream;
-import com.ksyun.ks3.util.Md5Utils;
 import com.ksyun.ks3.util.StringUtils;
-import com.ksyun.ks3.util.XmlWriter;
 
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.between;
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.notCorrect;
-import static java.io.File.separator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public class PutObjectRequest extends Ks3HttpObjectRequest implements
-        MD5CalculateAble {
-    private static final long serialVersionUID = 8398633676278496457L;
-    private File file;
+import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.notNull;
+
+public class PutObjectFetchRequest extends Ks3HttpObjectRequest{
+    private static final long serialVersionUID = 8391263314427812457L;
     private ObjectMetadata objectMeta = new ObjectMetadata();
     private CannedAccessControlList cannedAcl;
     private AccessControlList acl = new AccessControlList();
@@ -54,81 +32,45 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     private String callBackUrl;
     private String callBackBody;
     private Map<String, String> callBackHeaders;
-    /**
-     * 要进行的处理任务
-     */
-    private List<Adp> adps = new ArrayList<Adp>();
+
 
     /**
      * 数据处理任务完成后通知的url
      */
     private String notifyURL;
 
-    public InputStream getInputStream() {
-        return inputStream;
+    private String sourceUrl;
+
+    public String getSourceUrl() {
+        return sourceUrl;
     }
 
-    public void setInputStream(InputStream inputStream) {
-        this.inputStream = inputStream;
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
     }
 
-    private InputStream inputStream;
-
-    public PutObjectRequest(String bucketname, String key, File file) {
+    public PutObjectFetchRequest(String bucketname, String key, String sourceUrl) {
         this.setBucketname(bucketname);
         this.setObjectkey(key);
-        this.setFile(file);
+        this.setSourceUrl(sourceUrl);
     }
 
-    public PutObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata, ObjectTagging objectTagging) {
-        this(bucketname, key, file);
+    public PutObjectFetchRequest(String bucketname, String key, String sourceUrl, ObjectMetadata metadata) {
+        this(bucketname, key, sourceUrl);
         this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
-            this.setTagging(objectTagging);
-        }
-    }
-
-    public PutObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata) {
-        this(bucketname, key, file);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging() .getTagSet().size() > 0) {
+        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging().getTagSet().size() > 0) {
             this.setTagging(metadata.getTagging());
         }
     }
 
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-    }
-
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata, ObjectTagging objectTagging) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
+    public PutObjectFetchRequest(String bucketname, String key, String sourceUrl, ObjectMetadata metadata, ObjectTagging objectTagging) {
+        this(bucketname, key, sourceUrl);
         this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
         if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
             this.setTagging(objectTagging);
         }
     }
 
-    @Deprecated
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata, List<Adp> adps) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (adps != null && adps.size() > 0) {
-            this.adps = adps;
-        }
-    }
-
-    public PutObjectRequest(String bucketName, String objectName, ObjectTagging objectTagging) {
-        this.setBucketname(bucketName);
-        this.setObjectkey(objectName);
-        this.setTagging(objectTagging);
-    }
 
     public void setCallBack(String callBackUrl, String callBackBody, Map<String, String> callBackHeaders, String notifyURL) {
         this.callBackUrl = callBackUrl;
@@ -146,38 +88,10 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
 
     @Override
     protected void setupRequest() throws Ks3ClientException {
-        try {
-            /**
-             * 设置request body meta
-             */
-            if (file != null) {
-                this.setRequestBody(new RepeatableFileInputStream(file));
-                if (StringUtils.isBlank(getContentType())) {
-                    objectMeta.setContentType(Mimetypes.getInstance().getMimetype(file));
-                }
-                objectMeta.setContentLength(String.valueOf(file.length()));
-                this.addHeader(HttpHeaders.ContentLength, String.valueOf(file.length()));
-                String contentMd5_b64 = Md5Utils.md5AsBase64(file);
-                this.addHeader(HttpHeaders.ContentMD5.toString(), contentMd5_b64);
-            } else if (inputStream != null) {
-                this.objectMeta.setContentType("application/octet-stream");
-                long length = objectMeta.getContentLength();
-                if (length > 0) {
-                    this.setRequestBody(new LengthCheckInputStream(inputStream, length, false));
-                    this.addHeader(HttpHeaders.ContentLength, String.valueOf(length));
-                } else {
-                    this.setRequestBody(inputStream);
-                    this.addHeader(HttpHeaders.ContentLength, String.valueOf(inputStream.available()));
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(e);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(
-                    "calculate file md5 error (" + e + ")", e);
-        }
+
+        this.addParams("fetch", "");
+        this.setHttpMethod(HttpMethod.PUT);
+        this.addHeader(HttpHeaders.XKssSourceUrl, this.sourceUrl);
         if (!StringUtils.isBlank(this.callBackUrl) && !StringUtils.isBlank(this.callBackBody)) {
             this.addHeader(HttpHeaders.XKssCallBackUrl, this.callBackUrl);
             this.addHeader(HttpHeaders.XKssCallBackBody, this.callBackBody);
@@ -198,20 +112,13 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
         } else {
             Log.d(Constants.LOG_TAG, "the callbacurl or callbackbody is null , ignore set the callback");
         }
-
-        if (this.adps != null && adps.size() > 0) {
-            this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
-            if (!StringUtils.isBlank(notifyURL))
-                this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL, false));
-        }
-
-        for (Entry<Meta, String> entry : this.objectMeta.getMetadata()
+        for (Map.Entry<ObjectMetadata.Meta, String> entry : this.objectMeta.getMetadata()
                 .entrySet()) {
-            if (!entry.getKey().equals(Meta.ContentLength.toString())) {
+            if (!entry.getKey().equals(ObjectMetadata.Meta.ContentLength.toString())) {
                 this.addHeader(entry.getKey().toString(), entry.getValue());
             }
         }
-        for (Entry<String, String> entry : this.objectMeta.getUserMetadata()
+        for (Map.Entry<String, String> entry : this.objectMeta.getUserMetadata()
                 .entrySet()) {
             if (entry.getKey().startsWith(ObjectMetadata.userMetaPrefix))
                 this.addHeader(entry.getKey(), entry.getValue());
@@ -254,7 +161,6 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
                     this.redirectLocation);
         }
         this.setTagHeader();
-        this.setHttpMethod(HttpMethod.PUT);
     }
 
     @Override
@@ -263,10 +169,9 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
             throw new Ks3ClientException("bucket name is not correct");
         if (StringUtils.isBlank(this.getObjectkey()))
             throw new Ks3ClientException("object key can not be null");
-        if (file == null && inputStream == null) {
-            throw new Ks3ClientException("upload object can not be null");
+        if (StringUtils.isBlank(this.sourceUrl)) {
+            throw notNull("sourceUrl");
         }
-
         if (this.acl != null && this.acl.getGrants() != null) {
             for (Grant grant : this.acl.getGrants()) {
                 if (grant.getPermission() == null)
@@ -282,14 +187,6 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
                         "redirectLocation should start with / http:// or https://");
         }
 
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    private void setFile(File file) {
-        this.file = file;
     }
 
     public ObjectMetadata getObjectMeta() {
@@ -348,14 +245,6 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
         this.callBackHeaders = callBackHeaders;
     }
 
-    public List<Adp> getAdps() {
-        return adps;
-    }
-
-    public void setAdps(List<Adp> adps) {
-        this.adps = adps;
-    }
-
     public String getNotifyURL() {
         return notifyURL;
     }
@@ -363,12 +252,4 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     public void setNotifyURL(String notifyURL) {
         this.notifyURL = notifyURL;
     }
-
-    public String getMd5() {
-        return Base64
-                .encodeToString(
-                        ((MD5DigestCalculatingInputStream) super.getRequestBody())
-                                .getMd5Digest(), Base64.DEFAULT).trim();
-    }
-
 }

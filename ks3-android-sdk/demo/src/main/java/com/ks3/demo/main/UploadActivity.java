@@ -69,6 +69,7 @@ import javax.net.ssl.HttpsURLConnection;
 import cz.msebera.android.httpclient.Header;
 
 import static com.ks3.demo.main.Constants.SRC_BUCKETNAME;
+import static com.ks3.demo.main.Constants.SRC_OBJECTKEY;
 
 /**
  * Upload相关API使用示例，Initiate Multipart Upload，Upload Part，List Parts， Complete
@@ -287,7 +288,7 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         currentDirTextView = (TextView) findViewById(R.id.current_dir_tv);
         currentDir = Environment.getExternalStorageDirectory();
         setUp();
-        doSingleUploadByUrl("uptools2","xxx","http://caipengbo-test.ks3-cn-beijing.ksyun.com/%E7%A6%BB%E8%81%8C%E8%AF%81%E6%98%8E.doc");
+      //  doSingleUploadByUrl();
 
     }
 
@@ -406,30 +407,33 @@ public class UploadActivity extends Activity implements OnItemClickListener {
             throw new IllegalArgumentException("file can not be null");
         // 根据指定的文件大小，选择用直接上传或者分块上传
         long length = item.file.length();
-        if (item.file.length() >= Constants.MULTI_UPLOAD_THREADHOLD)
+        if (item.file.length() >= 2)
             doMultipartUpload(bucketName, item);
         else
             doSingleUpload(bucketName, item);
     }
 
     //流形式上传
-    private void doSingleUploadByUrl(final String bucketName,final String objectKey, String url) {
+    private void doSingleUploadByUrl() {
 
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
         try {
-            URLConnection  connection = getHttpURLConnection(url);
+
+            URLConnection  connection = getHttpURLConnection("http://ks3-console-bja.ksyun.com/api/object/download?key=tet.png&bucket=chenqichen");
             InputStream input = connection.getInputStream();
+            ObjectTagging objectTagging = new ObjectTagging();
+            objectTagging.addObjectTag("tagA", "A");
             ObjectMetadata  objectMetadata =  ObjectMetadataBuilder.build(connection.getHeaderFields());
-            final PutObjectRequest requestTwo = new PutObjectRequest(bucketName,objectKey, input, objectMetadata);
-            Adp adp = new Adp();
-            adp.setBucket("cqc-test-b");
-            adp.setCommand("tag=avinfo");
-            adp.setKey("1603423726462223-1.mp3");
-            requestTwo.setNotifyURL("http://127.0.0.1:9000/notify/url");
-            requestTwo.setAdps(Arrays.asList(adp));
+            final PutObjectRequest requestTwo = new PutObjectRequest(SRC_BUCKETNAME,SRC_OBJECTKEY, input, objectMetadata,objectTagging);
+//            Adp adp = new Adp();
+//            adp.setBucket(SRC_BUCKETNAME);
+//            adp.setCommand("tag=avinfo");
+//            adp.setKey("1603423726462223-1.mp3");
+//            requestTwo.setNotifyURL("http://127.0.0.1:9000/notify/url");
+//            requestTwo.setAdps(Arrays.asList(adp));
             client.putObject(requestTwo, new PutObjectResponseHandler() {
 
                 @Override
@@ -473,13 +477,13 @@ public class UploadActivity extends Activity implements OnItemClickListener {
 
     // 上传文件
     private void doSingleUpload(final String bucketName, final UploadFile item) {
-        final PutObjectRequest request = new PutObjectRequest(bucketName,
-                "test.3gp", item.file);
-        request.setCannedAcl(CannedAccessControlList.PublicRead);
-        request.addHeader("","");
+
 
         ObjectTagging objectTagging = new ObjectTagging();
         objectTagging.addObjectTag("tagA", "A");
+        final PutObjectRequest request = new PutObjectRequest(bucketName,
+                "test.3gp", item.file,null,objectTagging);
+        request.setCannedAcl(CannedAccessControlList.PublicRead);
 
 //		Map<String,String> customParams = new HashMap<String, String>();
         //自定义参数必须以kss-开头
@@ -581,8 +585,11 @@ public class UploadActivity extends Activity implements OnItemClickListener {
     // 分快上传
     private void doMultipartUpload(final String bucketName,
                                    final UploadFile item) {
+
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
         InitiateMultipartUploadRequest request = new InitiateMultipartUploadRequest(
-                bucketName, item.file.getName());
+                bucketName, item.file.getName(),objectTagging);
         initiateMultipartUpload(request, item);
     }
 

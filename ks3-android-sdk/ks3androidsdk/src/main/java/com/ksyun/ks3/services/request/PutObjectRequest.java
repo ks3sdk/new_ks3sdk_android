@@ -146,6 +146,9 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
 
     @Override
     protected void setupRequest() throws Ks3ClientException {
+
+
+        this.setHttpMethod(HttpMethod.PUT);
         try {
             /**
              * 设置request body meta
@@ -254,7 +257,6 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
                     this.redirectLocation);
         }
         this.setTagHeader();
-        this.setHttpMethod(HttpMethod.PUT);
     }
 
     @Override

@@ -21,11 +21,13 @@ import com.ksyun.ks3.model.acl.Permission;
 import com.ksyun.ks3.model.transfer.MD5DigestCalculatingInputStream;
 import com.ksyun.ks3.model.transfer.RepeatableFileInputStream;
 import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
+import com.ksyun.ks3.services.request.tag.ObjectTag;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.LengthCheckInputStream;
 import com.ksyun.ks3.util.Md5Utils;
 import com.ksyun.ks3.util.StringUtils;
+import com.ksyun.ks3.util.XmlWriter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -185,7 +187,25 @@ public class PostObjectRequest extends Ks3HttpObjectRequest implements
         if (this.redirectLocation != null) {
             this.addParams(HttpHeaders.XKssWebsiteRedirectLocation.toString(), this.redirectLocation);
         }
-        this.setTagHeader();
+        if (this.getTagging() != null && this.getTagging().getTagSet() != null && this.getTagging().getTagSet().size() > 0) {
+            XmlWriter writer = new XmlWriter();
+            writer.start("Tagging");
+            writer.start("TagSet");
+            List<ObjectTag> tags = this.getTagging().getTagSet();
+            StringBuffer stringBuffer = new StringBuffer();
+            for (ObjectTag tag : tags) {
+                writer.start("Tag");
+                writer.start("Key").value(tag.getKey()).end();
+                if (tag.getValue() != null) {
+                    writer.start("Value").value(tag.getValue()).end();
+                    stringBuffer.append(tag.getKey() + "=" + tag.getValue() + "&");
+                }
+            }
+            if (stringBuffer.length() > 0) {
+                String xKssObjectTagStr = stringBuffer.toString().substring(0, stringBuffer.toString().length() - 1);
+                this.getParams().put(HttpHeaders.XKssObjectTag.toString(), xKssObjectTagStr);
+            }
+        }
         this.addParams(HttpHeaders.Authorization.toString(),
                 new DefaultSigner().calculate(this.auth, this).trim());
     }

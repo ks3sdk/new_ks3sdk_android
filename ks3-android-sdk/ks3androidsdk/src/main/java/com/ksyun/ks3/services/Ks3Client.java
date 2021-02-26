@@ -80,6 +80,7 @@ import com.ksyun.ks3.services.request.UploadPartRequest;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
 import com.ksyun.ks3.services.request.object.PostObjectRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
+import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -637,7 +638,6 @@ public class Ks3Client implements Ks3 {
                                    Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
-
     public void putBucketQuota(PutBuckeQuotaRequest request,
                                Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
@@ -665,6 +665,10 @@ public class Ks3Client implements Ks3 {
         this.invoke(auth, request, handler, true);
     }
     public void getObjectTag(GetObjectTaggingRequest request, GetObjectTaggingResponseHandler handler){
+        this.invoke(auth, request, handler, true);
+    }
+    public void deleteObjectTag(DeleteObjectTaggingRequest request,
+                                Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
     public void postObject(PostObjectRequest request, Ks3HttpResponceHandler handler) {

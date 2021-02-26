@@ -28,6 +28,7 @@ public class Ks3HttpObjectRequest extends Ks3HttpRequest {
     }
 
     private ObjectTagging tagging;
+
     public Pattern TAG_PATTERN = Pattern.compile("^[\\w\\-+=.:/][\\w\\-+=.:/\\s]*(?<!\\s)$");
 
     @Override
@@ -53,11 +54,7 @@ public class Ks3HttpObjectRequest extends Ks3HttpRequest {
             }
             if (stringBuffer.length() > 0) {
                 String xKssObjectTagStr = stringBuffer.toString().substring(0, stringBuffer.toString().length() - 1);
-                if (this.getHttpMethod() == HttpMethod.POST) {
-                    this.getParams().put(HttpHeaders.XKssObjectTag.toString(), xKssObjectTagStr);
-                } else {
-                    this.addHeader(HttpHeaders.XKssObjectTag, xKssObjectTagStr);
-                }
+                this.addHeader(HttpHeaders.XKssObjectTag, xKssObjectTagStr);
             }
         }
     }

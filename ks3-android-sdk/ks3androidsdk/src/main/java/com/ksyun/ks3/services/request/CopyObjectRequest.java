@@ -115,6 +115,10 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
             }
         }
         this.setTagHeader();
+        if (this.getTagging() != null){
+            this.addHeader(HttpHeaders.XKssObjectTagDIRECTIVE, this.getTagging().getTaggingDirective());
+        }
+
     }
 
     @Override

@@ -36,7 +36,8 @@ public enum HttpHeaders {
 	NotifyURL("kss-notifyurl", false),
 	/*Object tag */
 	XKssObjectTag("x-kss-tagging"),
-	XKssObjectTagCount("x‑kss‑tagging‑count"),
+	XKssObjectTagDIRECTIVE("x-kss-tagging-directive"),
+	XKssObjectTagCount("x-kss-tagging-count"),
 	XKssSourceUrl("x-kss-sourceurl");
 	private String value;
 	private boolean isSpecHeader;

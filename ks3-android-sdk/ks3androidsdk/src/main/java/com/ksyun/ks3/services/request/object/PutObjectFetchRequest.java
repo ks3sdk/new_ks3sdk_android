@@ -54,7 +54,12 @@ public class PutObjectFetchRequest extends Ks3HttpObjectRequest{
         this.setObjectkey(key);
         this.setSourceUrl(sourceUrl);
     }
-
+    public PutObjectFetchRequest(String bucketname, String key, String sourceUrl, ObjectTagging objectTagging) {
+        this(bucketname, key, sourceUrl);
+        if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
+            this.setTagging(objectTagging);
+        }
+    }
     public PutObjectFetchRequest(String bucketname, String key, String sourceUrl, ObjectMetadata metadata) {
         this(bucketname, key, sourceUrl);
         this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
@@ -89,8 +94,8 @@ public class PutObjectFetchRequest extends Ks3HttpObjectRequest{
     @Override
     protected void setupRequest() throws Ks3ClientException {
 
-        this.addParams("fetch", "");
         this.setHttpMethod(HttpMethod.PUT);
+        this.addParams("fetch", "");
         this.addHeader(HttpHeaders.XKssSourceUrl, this.sourceUrl);
         if (!StringUtils.isBlank(this.callBackUrl) && !StringUtils.isBlank(this.callBackBody)) {
             this.addHeader(HttpHeaders.XKssCallBackUrl, this.callBackUrl);

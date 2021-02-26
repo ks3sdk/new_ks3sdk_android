@@ -16,6 +16,7 @@ import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
 import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.StringUtils;
 
 public class InitiateMultipartUploadRequest extends Ks3HttpObjectRequest {
@@ -28,9 +29,18 @@ public class InitiateMultipartUploadRequest extends Ks3HttpObjectRequest {
 		this.setBucketname(bucketName);
 		this.setObjectkey(key);
 	}
+	public InitiateMultipartUploadRequest(String bucketName, String key, ObjectTagging objectTagging) {
+		this.setBucketname(bucketName);
+		this.setObjectkey(key);
+		if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
+			this.setTagging(objectTagging);
+		}
+	}
+
 
 	@Override
 	protected void setupRequest() throws Ks3ClientException {
+
 		this.setHttpMethod(HttpMethod.POST);
 		this.addParams("uploads", null);
 		if(StringUtils.isBlank(getContentType()))

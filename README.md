@@ -5,6 +5,7 @@
 
 #KS3 SDK for Android使用指南
 ---
+
 ##开发前准备
 ###依赖库
 本SDK使用了loopj/android-async-http请求库，使用前请先下载对应的jar包，并导入工程
@@ -30,7 +31,6 @@ dependencies {
 - Android权限申明
 
 ```
-
  	<uses-permission android:name="android.permission.INTERNET" />
  	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
  	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -131,10 +131,10 @@ public void setCallBack(String callBackUrl, String callBackBody, Map<String, Str
   </tr>
 </table>
 
+
 **Callback使用范例**：
 
 ```
-
 		Map<String,String> customParams = new HashMap<String, String>();
 		//自定义参数必须以kss-开头
 		params.put("kss-location", "user_input_location");
@@ -181,8 +181,8 @@ Ks3Client初始化包含以下两种：
 Authorization: KSS P3UPCMORAFON76Q6RTNQ:vU9XqPLcXd3nWdlfLWIhruZrLAM=
 
 *签名生成规则*
-```
 
+```
 		Authorization = “KSS YourAccessKeyID:Signature”
 
  		Signature = Base64(HMAC-SHA1(YourAccessKeyIDSecret, UTF-8-Encoding-Of( StringToSign ) ) );
@@ -218,7 +218,6 @@ onCalculateAuth（）回调方法参数说明：
 ***For AccessKeyID、AccessKeySecret***
 
 ```
-
 		/* Directly using ak&sk */
 	    client = new Ks3Client(Constants.ACCESS_KEY_ID,Constants.ACCESS_KEY_SECRET, DummyActivity.this);
 	    configuration = Ks3ClientConfiguration.getDefaultConfiguration();
@@ -230,7 +229,6 @@ onCalculateAuth（）回调方法参数说明：
 ***For AuthListener***
 
 ```
-
 		/* Using authListener,Let your app server saved ak&sk and return token*/
 		client = new Ks3Client(new AuthListener() {
 			@Override
@@ -250,13 +248,16 @@ onCalculateAuth（）回调方法参数说明：
 		client.setEndpoint("ks3-cn-beijing.ksyun.com");
 
 ```
+
 ##SDK介绍及使用
 ###核心类介绍
+
 - Ks3Client 封装接入Web Service的一系列操作，提供更加便利的接口以及回调
 - Ks3ClientConfiguration 配置Ks3Client参数，包括代理设置，请求超时时长以及重试次数等
 - AuthUtils 包含授权算法的工具类
 
 ###资源管理操作
+
 * [List Buckets](#list-buckets) 列出客户所有的Bucket信息
 * [Create Bucket](#create-bucket) 创建一个新的Bucket
 * [Delete Bucket](#delete-bucket) 删除指定Bucket
@@ -310,8 +311,8 @@ public void listBuckets(ListBucketsResponceHandler resultHandler) throws Ks3Clie
 * resultList：成功时返回的Bucket容器  
 
 **代码示例：**
-```
 
+```
 	   client.listBuckets(new ListBucketsResponceHandler() {
 				@Override
 				public void onSuccess(int statesCode,
@@ -348,8 +349,8 @@ public void listBuckets(ListBucketsRequest request,ListBucketsResponceHandler re
 * resultList：成功时返回的Bucket容器  
 
 **代码示例：**
-```
 
+```
 	   client.listBuckets(new ListBucketsRequest(),new ListBucketsResponceHandler() {
 				@Override
 				public void onSuccess(int statesCode,
@@ -365,6 +366,7 @@ public void listBuckets(ListBucketsRequest request,ListBucketsResponceHandler re
 			}
 		);
 ```
+
 ###Bucket操作
 
 ####Create Bucket： 
@@ -387,8 +389,8 @@ public void createBucket(String bucketName,CreateBucketResponceHandler resultHan
 * throwable：出错时抛出的异常, Bucket名字不符合需求,抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.createBucket(Constants.BucketName,
 				new CreateBucketResponceHandler() {
 				@Override
@@ -427,7 +429,6 @@ public void createBucket(String bucketName,AccessControlList list,CreateBucketRe
 **代码示例：**
 
 ```
-
 		 AccessControlList acl = new AccessControlList();
 		 GranteeId grantee = new GranteeId() ;
 		 grantee.setIdentifier("12773456");
@@ -477,7 +478,6 @@ public void createBucket(String bucketName,CannedAccessControlList list,CreateBu
 **代码示例：**
 
 ```
-
 		 CannedAccessControlList cannedAcl = CannedAccessControlList.PublicReadWrite;
 
 		 client.createBucket(Constants.BucketName,cannedAcl,
@@ -515,8 +515,8 @@ public void createBucket(CreateBucketRequest request,CreateBucketResponceHandler
 * throwable：出错时抛出的异常, Bucket名字不符合需求,抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.createBucket(new CreateBucketRequest(Constants.BucketName),
 				new CreateBucketResponceHandler() {
 				@Override
@@ -554,8 +554,8 @@ public void deleteBucket(String bucketname,DeleteBucketResponceHandler handler) 
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.deleteBucket(Constants.BucketName,
 				new DeleteBucketResponceHandler() {
 
@@ -592,8 +592,8 @@ public void deleteBucket(DeleteBucketRequest request,DeleteBucketResponceHandler
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.deleteBucket(new DeleteBucketRequest（Constants.BucketName）,
 				new DeleteBucketResponceHandler() {
 
@@ -633,8 +633,8 @@ public void getBucketACL(String bucketName ,GetBucketACLResponceHandler resultHa
 * accessControlPolicy ACL政策Model类，包括Owner信息以及ACL容器等
 
 **代码示例：**
-```
 
+```
 		client.getBucketACL(Constants.BucketName, new GetBucketACLResponceHandler() {
 			@Override
 			public void onSuccess(int statesCode, Header[] responceHeaders,
@@ -669,8 +669,8 @@ public void getBucketACL(GetBucketACLRequest request ,GetBucketACLResponceHandle
 * accessControlPolicy ACL政策Model类，包括Owner信息以及ACL容器等
 
 **代码示例：**
-```
 
+```
 		client.getBucketACL(new GetBucketACLRequest(Constants.BucketName), new GetBucketACLResponceHandler() {
 			@Override
 			public void onSuccess(int statesCode, Header[] responceHeaders,
@@ -707,8 +707,8 @@ public void putBucketACL(String bucketName, AccessControlList accessControlList,
 * Throwable：出错时抛出的异常，为存在的Bucket设置空ACL时，参数检查时抛出异常，均抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		AccessControlList acl = new AccessControlList();
 	    GranteeId grantee = new GranteeId();
 		grantee.setIdentifier("12773456");
@@ -748,8 +748,8 @@ public void putBucketACL(String bucketName,CannedAccessControlList CannedAcl,Put
 * Throwable：出错时抛出的异常，为存在的Bucket设置空ACL时，参数检查时抛出异常，均抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		CannedAccessControlList cannedAcl = CannedAccessControlList.PublicReadWrite;
 		client.putBucketACL(bucketName, cannedAcl，new PutBucketACLResponseHandler() {
 
@@ -785,6 +785,7 @@ public void putBucketACL(PutBucketACLRequest requset,PutBucketACLResponseHandler
 * Throwable：出错时抛出的异常，为存在的Bucket设置空ACL时，参数检查时抛出异常，均抛出IllegalArgumentException
 
 **代码示例：**
+
 ```
 	
 		client.putBucketACL(new PutBucketACLRequest(bucketName,cannedAcl), new PutBucketACLResponseHandler() {
@@ -822,8 +823,8 @@ public void headBucket(String bucketname,HeadBucketResponseHandler resultHandler
 * Throwable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.headBucket(Constants.BucketName,
 				new HeadBucketResponseHandler() {
 
@@ -861,8 +862,8 @@ public void headBucket(HeadBucketRequest request,HeadBucketResponseHandler resul
 * Throwable：出错时抛出的异常,Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.headBucket(new HeadBucketRequest（Constants.BucketName,
 				new HeadBucketResponseHandler() {
 
@@ -1101,7 +1102,7 @@ public void putBucketPolicy(PutBuckePolicyRequest request,Ks3HttpResponceHandler
 * resultHandler：回调接口，包含onSuccess以及onFailure两个回调方法，运行在主线程
 * request：PutBuckePolicyRequest
 * policyRule：BucketPolicyRule
-**回调参数：**
+  **回调参数：**
 
 * statesCode：Http请求返回的状态码，200表示请求成功，400表示客户端请求错误，403表示签名错误或本地日期时间错误，404表示请求一个不存在的Bucket
 * responceHeader:Http请求响应报头
@@ -1234,8 +1235,8 @@ public Ks3HttpRequest getObject(Context context, String bucketname, String key, 
 * object:成功后对应的Ks3Object实体类
 
 **代码示例：**
-```
 
+```
 		client.getObject(DummyActivity.this,Constants.BucketName,Constants.ObjectKey,
 				new GetObjectResponceHandler(new File(Environment
 					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
@@ -1292,8 +1293,8 @@ public Ks3HttpRequest getObject(GetObjectRequest request, GetObjectResponceHandl
 * object:成功后对应的Ks3Object实体类
 
 **代码示例：**
-```
 
+```
 		client.getObject(new GetObjectRequest(bucketname, key),
 				new GetObjectResponceHandler(new File(Environment
 					.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
@@ -1352,8 +1353,8 @@ public void headObject(String bucketname, String objectkey,HeadObjectResponseHan
 * throwable：出错时抛出的异常，Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.headObject(Constants.BucketName,Constants.ObjectKey,
 				new HeadObjectResponseHandler() {
 
@@ -1371,6 +1372,7 @@ public void headObject(String bucketname, String objectkey,HeadObjectResponseHan
 				}
 		);
 ```
+
 *查询是否已经存在指定Object*
 
 **方法名：** 
@@ -1391,8 +1393,8 @@ public void headObject(HeadObjectRequest request,HeadObjectResponseHandler resul
 * throwable：出错时抛出的异常，Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.headObject(new HeadObjectRequest（Constants.BucketName,Constants.ObjectKey）
 				new HeadObjectResponseHandler() {
 
@@ -1434,8 +1436,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * throwable：出错时抛出的异常，Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.deleteObject(Constants.BucketName,Constants.ObjectKey, new DeleteObjectRequestHandler() {
 
 				@Override
@@ -1471,8 +1473,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * throwable：出错时抛出的异常，Bucket名字不符合需求，抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		client.deleteObject(new DeleteObjectRequest（Constants.BucketName,Constants.ObjectKey),new DeleteObjectRequestHandler() {
 
 				@Override
@@ -1510,8 +1512,8 @@ public void getObjectACL(String bucketName, String ObjectName , GetObjectACLResp
 * accessControlPolicy ACL政策Model类，包括Owner信息以及ACL容器等
 
 **代码示例：**
-```
 
+```
 		client.getObjectACL(Constants.BucketName,Constants.ObjectKey,
 				new GetObjectACLResponseHandler() {
 
@@ -1551,8 +1553,8 @@ public void getObjectACL(GetObjectACLRequest request, GetObjectACLResponseHandle
 * accessControlPolicy ACL政策Model类，包括Owner信息以及ACL容器等
 
 **代码示例：**
-```
 
+```
 		client.getObjectACL(new GetObjectACLRequest(Constants.BucketName,Constants.ObjectKey),
 				new GetObjectACLResponseHandler() {
 
@@ -1595,8 +1597,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * throwable：出错时抛出的异常，为存在的Object设置空ACL时,Bucket名字不符合需求，均抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		CannedAccessControlList list = CannedAccessControlList.PublicRead;
 		client.putObjectACL(bucketName, objectKey, list, new PutObjectACLResponseHandler() {
 			@Override
@@ -1631,8 +1633,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * throwable：出错时抛出的异常，为存在的Object设置空ACL时,Bucket名字不符合需求，均抛出IllegalArgumentException
 
 **代码示例：**
-```
 
+```
 		AccessControlList acList = new AccessControlList();
 		GranteeId grantee = new GranteeId();
 		grantee.setIdentifier("123456");
@@ -1671,6 +1673,7 @@ throws Ks3ClientException, Ks3ServiceException{}
 * throwable：出错时抛出的异常，为存在的Object设置空ACL时,Bucket名字不符合需求，均抛出IllegalArgumentException
 
 **代码示例：**
+
 ```
 		CannedAccessControlList list = CannedAccessControlList.PublicRead;
 		client.putObjectACL(new PutObjectACLRequest(bucketName, objectKey, list), new PutObjectACLResponseHandler() {
@@ -1710,8 +1713,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * objectListing:成功时返回的指定Bucket下所有的Object ummary信息实体类，包含一个Ks3ObjectSummary的容器及其他信息
 
 **代码示例：**
-````
 
+````
 		client.listObjects(Constants.BucketName, new ListObjectsResponseHandler() {
 
 			@Override
@@ -1749,8 +1752,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * objectListing:成功时返回的指定Bucket下所有的Object Summary信息实体类
 
 **代码示例：**
-````
 
+````
 		client.listObjects(Constants.BucketName,Constants.Prefix, new ListObjectsResponseHandler() {
 
 			@Override
@@ -1792,8 +1795,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * objectListing:成功时返回的指定Bucket下所有的Object Summary信息实体类
 
 **代码示例：**
-````
 
+````
 		client.listObjects(new ListObjectsRequest(bucketname,prefix,delimiter,maxKeys), new ListObjectsResponseHandler() {
 
 			@Override
@@ -1830,8 +1833,8 @@ throws Ks3ClientException, Ks3ServiceException{}
 * objectListing:成功时返回的指定Bucket下所有的Object Summary信息实体类
 
 **代码示例：**
-````
 
+````
 		client.listObjects(new ListObjectsRequest(bucketname, prefix), new ListObjectsResponseHandler() {
 
 			@Override
@@ -1872,8 +1875,8 @@ File file , PutObjectResponseHandler handler) throws Ks3ClientException, Ks3Serv
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.PutObject(bucketname, objectkey, file, new PutObjectResponseHandler() {
 						
 					@Override
@@ -1924,8 +1927,8 @@ public Ks3HttpRequest PutObject(PutObjectRequest request, PutObjectResponseHandl
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.PutObject(new PutObjectRequest(bucketname, objectkey, file), new PutObjectResponseHandler() {
 						
 					@Override
@@ -1983,8 +1986,8 @@ CopyObjectResponseHandler resultHandler) throws Ks3ClientException,Ks3ServiceExc
 * result:成功时返回的Copy结果信息实体类
 
 **代码示例：**
-````
 
+````
 		client.copyObject("ks3-sdk-test", "object-source", "eflake", "object-copy", new CopyObjectResponseHandler() {
 			
 			@Override
@@ -2028,7 +2031,6 @@ CannedAccessControlList cannedAcl, CopyObjectResponseHandler resultHandler) thro
 **代码示例：**
 
 ````
-
 		CannedAccessControlList cannedAcl = CannedAccessControlList.PublicRead;
 		client.copyObject("ks3-sdk-test", "object-source", "eflake", "object-copy",cannedAcl, new CopyObjectResponseHandler() {
 			
@@ -2073,7 +2075,6 @@ AccessControlList accessControlList, CopyObjectResponseHandler resultHandler) th
 **代码示例：**
 
 ````
-
 		AccessControlList acList = new AccessControlList();
 		GranteeId grantee = new GranteeId();
 		grantee.setIdentifier("123456");
@@ -2160,8 +2161,8 @@ Ks3ServiceException;
 * result：成功时返回的初始化分片上传结果实体类，包含uploadId信息等
 
 **代码示例：**
-```
 
+```
 	client.initiateMultipartUpload(bucketName, objectKey,
 				new InitiateMultipartUploadResponceHandler() {
 
@@ -2201,8 +2202,8 @@ Ks3ServiceException;
 * result：成功时返回的初始化分片上传结果实体类，包含uploadId信息等
 
 **代码示例：**
-```
 
+```
 	client.initiateMultipartUpload(new InitiateMultipartUploadRequest(
 				bucketName, objectKey),
 				new InitiateMultipartUploadResponceHandler() {
@@ -2252,8 +2253,8 @@ public void uploadPart(String bucketName, String key, String uploadId,File file,
 * result:成功时返回PartETag结果实体类，包含partNumber以及Etag信息
 
 **代码示例：**
-```
 
+```
 		client.uploadPart(bucketName, key,
 				uploadId, file, offset, partNumbe，partsize,new UploadPartResponceHandler() {
 					@Override
@@ -2294,8 +2295,8 @@ public void uploadPart(UploadPartRequest request,UploadPartResponceHandler resul
 * result:成功时返回UploadPart结果实体类，包含partNumber以及Etag信息
 
 **代码示例：**
-```
 
+```
 		client.uploadPart(new UploadPartRequest(bucketName, key,
 				uploadId, file, offset, partNumber++, partsize),new UploadPartResponceHandler() {
 					@Override
@@ -2342,8 +2343,8 @@ String uploadId,ListPartsResponseHandler handler) throws Ks3ClientException, Ks3
 * result:成功时返回ListPartsResult结果实体类,包含Owner及一个Parts容器类
 
 **代码示例：**
-```
 
+```
 		client.ListParts(bucketName, objectKey, uploadId,
 						new ListPartsResponseHandler() {
 							@Override
@@ -2395,8 +2396,8 @@ String uploadId, int maxParts, ListPartsResponseHandler handler) throws Ks3Clien
 * result:成功时返回ListPartsResult结果实体类,包含Owner及一个Parts容器类
 
 **代码示例：**
-```
 
+```
 		client.ListParts(bucketName, objectKey,uploadId,maxParts, 
 						new ListPartsResponseHandler() {
 							@Override
@@ -2448,8 +2449,8 @@ String uploadId,int maxParts, int partNumberMarker, ListPartsResponseHandler han
 * result:成功时返回ListPartsResult结果实体类,包含Owner及一个Parts容器类
 
 **代码示例：**
-```
 
+```
 		client.ListParts(bucketName, objectKey,uploadId,maxParts,partNumberMarker,
 						new ListPartsResponseHandler() {
 							@Override
@@ -2502,8 +2503,8 @@ String uploadId,AbortMultipartUploadResponseHandler handler) throws Ks3ClientExc
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.abortMultipartUpload(bucketname, objectkey, uploadId, new AbortMultipartUploadResponseHandler() {
 			
 			@Override
@@ -2540,8 +2541,8 @@ public void abortMultipartUpload(AbortMultipartUploadRequest request, AbortMulti
 * throwable：出错时抛出的异常
 
 **代码示例：**
-```
 
+```
 		client.abortMultipartUpload(new AbortMultipartUploadRequest(bucketname, objectkey, uploadId), new AbortMultipartUploadResponseHandler() {
 			
 			@Override
@@ -2583,8 +2584,8 @@ List<PartETag> partETags,CompleteMultipartUploadResponseHandler handler) throws 
 * result:成功时返回结果实体类
 
 **代码示例：**
-```
 
+```
 		client.completeMultipartUpload(
 							new CompleteMultipartUploadRequest(
 									mLastListPartResul),
@@ -2632,8 +2633,8 @@ public void completeMultipartUpload(ListPartsResult result, CompleteMultipartUpl
 * result:成功时返回结果实体类
 
 **代码示例：**
-```
 
+```
 		client.completeMultipartUpload(mLastListPartResul,
 							new CompleteMultipartUploadResponseHandler() {
 
@@ -2679,8 +2680,8 @@ public void completeMultipartUpload(CompleteMultipartUploadRequest request, Comp
 * result:成功时返回结果实体类
 
 **代码示例：**
-```
 
+```
 		client.completeMultipartUpload(
 							new CompleteMultipartUploadRequest(
 									mLastListPartResul),
@@ -2713,7 +2714,6 @@ public void completeMultipartUpload(CompleteMultipartUploadRequest request, Comp
 *分片上传代码示例*
 
 ````
-
 		handler = new UploadPartHandler();
 		client.initiateMultipartUpload(new InitiateMultipartUploadRequest(
 				bucketName, objectKey),
@@ -2903,4 +2903,67 @@ public void completeMultipartUpload(CompleteMultipartUploadRequest request, Comp
     }
 ````
 
+
+
+####POST表单上传使用示例：
+
+    public void postObject() {
+            final String srcObjectKey = "2015/01/demo/KS3SDKDemo.zip";
+            final File file = new File(TEST_MULTIUPLOAD_FILE);
+            Map<String, String> postData = new HashMap<String, String>();
+            postData.put("acl", "public-read");
+            postData.put("bucket",SRC_BUCKETNAME);
+            Map<String,String> unknowValueField = new HashMap<>();
+            unknowValueField.put("key","111/");
+            PostObjectFormFields fields = client.getObjectFormFields(SRC_BUCKETNAME, file.getName(), postData, unknowValueField);
+            fields.getKssAccessKeyId();
+            fields.getPolicy();
+            fields.getSignature();
+            String uploadUrl = END_POINT;
+            String boundary = UUID.randomUUID().toString();
+    
+            RequestBody fileBody = RequestBody.create(MediaType.parse("charset=utf-8") , file);
+    
+            OkHttpClient okHttpClient  = new OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10,TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .build();
+            //post方式提交的数据
+            MultipartBody mBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                    .addFormDataPart("acl","public-read")
+                    .addFormDataPart("key" , srcObjectKey)
+                    .addFormDataPart("KSSAccessKeyId" , fields.getKssAccessKeyId())
+                    .addFormDataPart("Policy" , fields.getPolicy())
+                    .addFormDataPart("Signature",fields.getSignature().trim())
+                    .addFormDataPart("file" , file.getName() , fileBody)
+                    .build();
+            final Request request = new Request.Builder()
+                    .url("http://"+SRC_BUCKETNAME+"."+uploadUrl)//请求的url
+                    .post(mBody)
+                    .addHeader("Charset", "UTF-8")
+                    .addHeader("Content-Type", "multipart/form-data;boundary=" + boundary)
+                    .addHeader("Content-Length", String.valueOf(file.length()))
+                    .build();
+    
+    
+            //创建/Call
+            Call call = okHttpClient.newCall(request);
+            //加入队列 异步操作
+            call.enqueue(new Callback() {
+                //请求错误回调方法
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    System.out.println(e.getMessage());
+                    System.out.println("连接失败");
+                }
+    
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if(response.code()==200) {
+                        System.out.println("成功"+response.body().string());
+                    }
+                }
+            });
+        }
 

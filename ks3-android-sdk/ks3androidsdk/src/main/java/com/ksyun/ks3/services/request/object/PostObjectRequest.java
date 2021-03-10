@@ -13,6 +13,7 @@ import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.model.Mimetypes;
 import com.ksyun.ks3.model.ObjectMetadata;
+import com.ksyun.ks3.model.PostObjectFormFields;
 import com.ksyun.ks3.model.acl.AccessControlList;
 import com.ksyun.ks3.model.acl.Authorization;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
@@ -52,6 +53,16 @@ public class PostObjectRequest extends Ks3HttpObjectRequest implements
     private Map<String, String> callBackHeaders;
 
     public Authorization auth;
+
+    public PostObjectFormFields getFields() {
+        return fields;
+    }
+
+    public void setFields(PostObjectFormFields fields) {
+        this.fields = fields;
+    }
+
+    public PostObjectFormFields fields;
     /**
      * 数据处理任务完成后通知的url
      */
@@ -67,19 +78,20 @@ public class PostObjectRequest extends Ks3HttpObjectRequest implements
 
     private InputStream inputStream;
 
-    public PostObjectRequest(String bucketname, String key, File file) {
+    public PostObjectRequest(String bucketname, String key, File file, PostObjectFormFields fields) {
         this.setBucketname(bucketname);
         this.setObjectkey(key);
         this.setFile(file);
+        this.setFields(fields);
     }
 
-    public PostObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata) {
-        this(bucketname, key, file);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging().getTagSet().size() > 0) {
-            this.setTagging(metadata.getTagging());
-        }
-    }
+//    public PostObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata) {
+//        this(bucketname, key, file,null);
+//        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
+//        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging().getTagSet().size() > 0) {
+//            this.setTagging(metadata.getTagging());
+//        }
+//    }
 
     public void setCallBack(String callBackUrl, String callBackBody, Map<String, String> callBackHeaders, String notifyURL) {
         this.callBackUrl = callBackUrl;
@@ -99,30 +111,9 @@ public class PostObjectRequest extends Ks3HttpObjectRequest implements
     protected void setupRequest() throws Ks3ClientException {
 
         this.setHttpMethod(HttpMethod.POST);
-        try {
-            if (this.cannedAcl != null) {
-                this.addParams("acl", this.cannedAcl.name());
-            }
-            this.addParams("key", this.getObjectkey());
-            if (file != null) {
-                InputStream inputStream = new RepeatableFileInputStream(file);
-                this.addParams("file", inputStream.toString());
-                if (StringUtils.isBlank(getContentType())) {
-                    objectMeta.setContentType(Mimetypes.getInstance().getMimetype(file));
-                }
-                objectMeta.setContentLength(String.valueOf(file.length()));
-                this.addParams(HttpHeaders.ContentLength.toString(), String.valueOf(file.length()));
-                String contentMd5_b64 = Md5Utils.md5AsBase64(file);
-                this.addParams(HttpHeaders.ContentMD5.toString(), contentMd5_b64);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(e);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(
-                    "calculate file md5 error (" + e + ")", e);
-        }
+        this.addHeader("Content-Type", "multipart/form-data");
+        this.addParams("key", this.getObjectkey());
+
         if (!StringUtils.isBlank(this.callBackUrl) && !StringUtils.isBlank(this.callBackBody)) {
             this.addParams(HttpHeaders.XKssCallBackUrl.toString(), this.callBackUrl);
             this.addParams(HttpHeaders.XKssCallBackBody.toString(), this.callBackBody);

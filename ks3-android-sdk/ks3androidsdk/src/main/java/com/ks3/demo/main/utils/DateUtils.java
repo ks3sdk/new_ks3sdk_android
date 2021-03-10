@@ -1,5 +1,9 @@
 package com.ks3.demo.main.utils;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,6 +13,9 @@ import java.util.SimpleTimeZone;
 
 public class DateUtils {
 
+    public static enum DATETIME_PROTOCOL {
+        RFC1123, ISO8861;
+    };
     public static Date parseRfc822Date(String dateString) throws ParseException {
         return getRfc822DateFormat().parse(dateString);
     }
@@ -34,4 +41,22 @@ public class DateUtils {
         }
         return 0;
     }
+    public static String convertDate2Str(Date date, DATETIME_PROTOCOL protocol) {
+        if (protocol.equals(DATETIME_PROTOCOL.RFC1123)) {
+
+            org.joda.time.format.DateTimeFormatter RFC1123_DATE_TIME_FORMATTER = DateTimeFormat
+                    .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+                    .withZoneUTC().withLocale(Locale.ENGLISH);
+
+            return RFC1123_DATE_TIME_FORMATTER.print(date.getTime());
+
+        } else if (protocol.equals(DATETIME_PROTOCOL.ISO8861)) {
+
+            DateTimeFormatter ISO8861_FORMATTER = ISODateTimeFormat.dateTime()
+                    .withZoneUTC();
+            return ISO8861_FORMATTER.print(date.getTime());
+        }
+        return null;
+    }
+
 }

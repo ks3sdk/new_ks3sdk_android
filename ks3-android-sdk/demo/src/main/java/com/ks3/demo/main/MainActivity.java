@@ -24,6 +24,7 @@ import com.ksyun.ks3.model.Ks3ObjectSummary;
 import com.ksyun.ks3.model.ObjectListing;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.Owner;
+import com.ksyun.ks3.model.PostObjectFormFields;
 import com.ksyun.ks3.model.acl.AccessControlPolicy;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
@@ -83,11 +84,22 @@ import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
 
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -120,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int PUT_OBJECT_ADP = 21;
     public static final int PUT_OBJECT_TAG = 22;
     public static final int FETCH_OBJECT = 23;
+    public static final int POST_OBJECT = 24;
     // Upload
     public static final int UPLOAD = 13;
     // Download
@@ -258,6 +271,10 @@ public class MainActivity extends AppCompatActivity {
                     case FETCH_OBJECT:
                         testPutFetchObj();
                         break;
+                    case POST_OBJECT:
+                        postObject();
+                        break;
+
                     default:
                         break;
                 }
@@ -271,11 +288,11 @@ public class MainActivity extends AppCompatActivity {
         objectTagging.addObjectTag("tagA", "b");
         objectTagging.setTaggingDirective("Replace");
 
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(SRC_BUCKETNAME, "ZZZb",SRC_BUCKETNAME, SRC_OBJECTKEY,objectTagging);
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(SRC_BUCKETNAME, "ZZZb", SRC_BUCKETNAME, SRC_OBJECTKEY, objectTagging);
         client.copyObject(copyObjectRequest, new CopyObjectResponseHandler() {
             @Override
             public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
-                System.out.println("fail copyObjectResponse is " + new String (response));
+                System.out.println("fail copyObjectResponse is " + new String(response));
             }
 
             @Override
@@ -474,9 +491,9 @@ public class MainActivity extends AppCompatActivity {
                                                         + headObjectResult
                                                         .getLastmodified())
                                                 .append("\n");
-                                        stringBuffer.append(  "ETag                  = "
-                                                        + headObjectResult
-                                                        .getETag())
+                                        stringBuffer.append("ETag                  = "
+                                                + headObjectResult
+                                                .getETag())
                                                 .append("\n");
                                         ObjectMetadata metadata = headObjectResult
                                                 .getObjectMetadata();
@@ -1585,20 +1602,67 @@ public class MainActivity extends AppCompatActivity {
     public void postObject() {
 
         final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
-        final File file = new File(Constants.TEST_MULTIUPLOAD_FILE);
-        PostObjectRequest postObjectRequest = new PostObjectRequest(SRC_BUCKETNAME, srcObjectKey, file);
-        //表单上传需要这个auth 计算签名
-        postObjectRequest.auth = client.auth;
-        client.postObject(postObjectRequest, new Ks3HttpResponceHandler() {
-            @Override
-            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+        final File file = new File(TEST_MULTIUPLOAD_FILE);
+        Map<String, String> postData = new HashMap<String, String>();
+        postData.put("acl", "public-read");
+        postData.put("key", "20150115/中文/${filename}");
+        List<String> unknowValueField = new ArrayList<String>();
+        unknowValueField.add("name");
+        PostObjectFormFields fields = client.getObjectFormFields(SRC_BUCKETNAME, file.getName(), postData, unknowValueField);
+        fields.getKssAccessKeyId();
+        fields.getPolicy();
+        fields.getSignature();
+        String uploadUrl = END_POINT;
+        String end = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "******";
+        try {
+            URL url = new URL(uploadUrl);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url
+                    .openConnection();
+            httpURLConnection.setDoInput(true);
+            httpURLConnection.setDoOutput(true);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setRequestMethod("POST");
+            httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
+            httpURLConnection.setRequestProperty("Charset", "UTF-8");
+            httpURLConnection.setRequestProperty("Content-Type",
+                    "multipart/form-data;boundary=" + boundary);
+
+            DataOutputStream dos = new DataOutputStream(httpURLConnection.getOutputStream());
+            dos.writeBytes(twoHyphens + boundary + end);
+            dos.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\""
+                    + file.getName()
+                    + "\"" + end);
+            dos.writeBytes(end);
+            //将SD 文件通过输入流读到Java代码中-++++++++++++++++++++++++++++++`````````````````````````
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[8192]; // 8k
+            int count = 0;
+            while ((count = fis.read(buffer)) != -1) {
+                dos.write(buffer, 0, count);
 
             }
-            @Override
-            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+            fis.close();
+            System.out.println("file send to server............");
+            dos.writeBytes(end);
+            dos.writeBytes(twoHyphens + boundary + twoHyphens + end);
+            dos.flush();
 
-            }
-        });
+            //读取服务器返回结果
+            InputStream is = httpURLConnection.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is, "utf-8");
+            BufferedReader br = new BufferedReader(isr);
+            String result = br.readLine();
+
+            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+            dos.close();
+            is.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            setTitle(e.getMessage());
+        }
 
     }
 
@@ -1606,7 +1670,7 @@ public class MainActivity extends AppCompatActivity {
 
         final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
         String sourceUrl = "";
-        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, srcObjectKey,sourceUrl);
+        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, srcObjectKey, sourceUrl);
         client.putObjectFetch(putObjectFetchRequest, new PutObjectFetchResponseHandler() {
             @Override
             public void onTaskFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
@@ -1620,6 +1684,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
     /**
      * put object tag
      */
@@ -1651,15 +1716,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
-                System.out.println("fail putObjectTaggingResponse is " + new String (response));
+                System.out.println("fail putObjectTaggingResponse is " + new String(response));
             }
         });
 
-        DeleteObjectTaggingRequest deleteObjectTaggingRequest = new DeleteObjectTaggingRequest(SRC_BUCKETNAME,SRC_OBJECTKEY);
+        DeleteObjectTaggingRequest deleteObjectTaggingRequest = new DeleteObjectTaggingRequest(SRC_BUCKETNAME, SRC_OBJECTKEY);
         client.deleteObjectTag(deleteObjectTaggingRequest, new HeadBucketResponseHandler() {
             @Override
             public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
-                System.out.println("fail DeleteObjectTaggingRequest is " + new String (response));
+                System.out.println("fail DeleteObjectTaggingRequest is " + new String(response));
             }
 
             @Override
@@ -1668,6 +1733,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     /**
      * testPutFetchObj
      */
@@ -1676,17 +1742,18 @@ public class MainActivity extends AppCompatActivity {
         ObjectTagging objectTagging = new ObjectTagging();
         objectTagging.addObjectTag("tagA", "A");
 
-        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, "zzzz","http://ks3tools-online.ks3-cn-beijing.ksyun.com/tools/release/ks3up-tool-2.1.1-dist.zip", objectTagging);
-        putObjectFetchRequest.setCallBack("https://open.feishu.cn/open-apis/bot/v2/hook/704de274-447f-400f-a634-075df20fd1ba",putObjectFetchRequest.getCallBackBody(),putObjectFetchRequest.getHeader());
+        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, "zzzz", "http://ks3tools-online.ks3-cn-beijing.ksyun.com/tools/release/ks3up-tool-2.1.1-dist.zip", objectTagging);
+        putObjectFetchRequest.setCallBack("https://open.feishu.cn/open-apis/bot/v2/hook/704de274-447f-400f-a634-075df20fd1ba", putObjectFetchRequest.getCallBackBody(), putObjectFetchRequest.getHeader());
         client.putObjectFetch(putObjectFetchRequest, new Ks3HttpResponceHandler() {
             @Override
             public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
 
-                System.out.println("success putObjectFetchResponse is " + new String (response));
+                System.out.println("success putObjectFetchResponse is " + new String(response));
             }
+
             @Override
             public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
-                System.out.println("fail putObjectFetchResponse is " + new String (response));
+                System.out.println("fail putObjectFetchResponse is " + new String(response));
             }
         });
     }

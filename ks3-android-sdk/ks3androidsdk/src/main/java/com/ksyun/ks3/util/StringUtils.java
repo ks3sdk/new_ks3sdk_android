@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringUtils {
@@ -272,4 +273,12 @@ public class StringUtils {
 		return new String(newChars);
 	}
 
+	public static boolean checkLong(Object o) {
+		String value = String.valueOf(o);
+		Pattern pattern = Pattern.compile("^[0-9]+$");
+		Matcher matcher = pattern.matcher(value);
+		if (matcher.find())
+			return true;
+		return false;
+	}
 }

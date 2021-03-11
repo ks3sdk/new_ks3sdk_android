@@ -1,5 +1,8 @@
 package com.ksyun.ks3.util;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Constants {
 	/* Global log tag */
 	public static final String GLOBLE_LOG_TAG = "ks3_sdk_android";
@@ -38,9 +41,19 @@ public class Constants {
 	
 	// call back 
 	public static final String CALL_BACK_CUSTOM_PREFIX = "kss-";
-	
-	
-	
+
+
+	public static List<String> postFormIgnoreFields = Arrays.asList(new String[]{"AWSAccessKeyId","KSSAccessKeyId","signature","policy","submit","file"});
+	public static List<String> postFormUnIgnoreCase = Arrays.asList(new String[] {
+			"Content-Type",
+			"Content-Length",
+			"Cache-Control",
+			"Content-Disposition",
+			"Content-Encoding",
+			"Expires",
+			"AWSAccessKeyId",
+			"KSSAccessKeyId"
+	});
 	
 	
 }

@@ -23,6 +23,10 @@ public class ObjectMetadataBuilder {
             return null;
         } else {
             ObjectMetadata meta = new ObjectMetadata();
+//            if (headers.containsKey(ObjectMetadata.Meta.XKssObjectTagCount.name())
+////                    && !((List) headers.get(ObjectMetadata.Meta.XKssObjectTagCount.name())).isEmpty()) {
+////                meta.setObjectTagCount(Long.valueOf((String) ((List) headers.get(ObjectMetadata.Meta.XKssObjectTagCount.name())).get(0)).longValue());
+////            }
             if (headers.containsKey("Content-Length")
                     && !((List) headers.get("Content-Length")).isEmpty()) {
                 meta.setContentLength(Long.valueOf((String) ((List) headers.get("Content-Length")).get(0)).longValue());

@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
+import com.ks3.demo.main.utils.DateUtils;
 import com.ksyun.ks3.model.acl.Authorization;
 import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.util.ByteUtil;
@@ -11,17 +12,21 @@ import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+//import cz.msebera.android.httpclient.extras.Base64;
 
 public class AuthUtils {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
@@ -145,6 +150,41 @@ public class AuthUtils {
             throw new SignatureException("Failed to generate HMAC : " + e);
         }
         return result;
+    }
+    //post表单时的签名
+    /**
+     *
+     * @param accessKeySecret
+     * @param policy  getPolicy(Date expiration,String bucket)得到的结果
+     * @return
+     * @throws SignatureException
+     */
+    public static String calcSignature(String accessKeySecret,String policy) throws SignatureException{
+        String signStr = policy;
+        return calculateRFC2104HMAC(signStr,accessKeySecret);
+    }
+    //post表单时的policy
+    /**
+     *
+     * @param expiration 该签名过期时间
+     * @param bucket 该签名只能在该bucket上使用
+     * @return
+     */
+    @Deprecated
+    public static String getPolicy(Date expiration, String bucket) {
+        String policy = "{\"expiration\": \""
+                + DateUtils.convertDate2Str(expiration, DateUtils.DATETIME_PROTOCOL.ISO8861)
+                +"\",\"conditions\": [ {\"bucket\": \""+bucket+"\"}]}";
+
+        try {
+//            String _policy = new String(Base64.encodeBase64(policy.getBytes("UTF-8")),"UTF-8");
+//            String ss = new String(policy.getBytes("UTF-8"), "UTF-8");
+            String _policy = Base64.encodeToString(policy.getBytes("UTF-8"),Base64.DEFAULT);
+            return _policy;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
 }

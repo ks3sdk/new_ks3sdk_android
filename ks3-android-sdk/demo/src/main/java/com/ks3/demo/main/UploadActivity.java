@@ -28,6 +28,7 @@ import com.ks3.demo.main.BucketInpuDialog.OnBucketDialogListener;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.PartETag;
+import com.ksyun.ks3.model.PostObjectFormFields;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.result.CompleteMultipartUploadResult;
 import com.ksyun.ks3.model.result.InitiateMultipartUploadResult;
@@ -37,6 +38,7 @@ import com.ksyun.ks3.services.Ks3ClientConfiguration;
 import com.ksyun.ks3.services.handler.AbortMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.CompleteMultipartUploadResponseHandler;
 import com.ksyun.ks3.services.handler.InitiateMultipartUploadResponceHandler;
+import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutObjectResponseHandler;
 import com.ksyun.ks3.services.handler.UploadPartResponceHandler;
@@ -46,18 +48,21 @@ import com.ksyun.ks3.services.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
-import com.ksyun.ks3.services.request.adp.Adp;
-import com.ksyun.ks3.services.request.adp.PutAdpRequest;
+import com.ksyun.ks3.services.request.object.PostObjectRequest;
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
 
+import org.junit.Test;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +72,7 @@ import javax.net.ssl.HttpsURLConnection;
 import cz.msebera.android.httpclient.Header;
 
 import static com.ks3.demo.main.Constants.SRC_BUCKETNAME;
+import static com.ks3.demo.main.Constants.SRC_OBJECTKEY;
 
 /**
  * Upload相关API使用示例，Initiate Multipart Upload，Upload Part，List Parts， Complete
@@ -285,7 +291,7 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         currentDirTextView = (TextView) findViewById(R.id.current_dir_tv);
         currentDir = Environment.getExternalStorageDirectory();
         setUp();
-        doSingleUploadByUrl("uptools2","xxx","http://caipengbo-test.ks3-cn-beijing.ksyun.com/%E7%A6%BB%E8%81%8C%E8%AF%81%E6%98%8E.doc");
+      //  doSingleUploadByUrl();
 
     }
 
@@ -404,30 +410,33 @@ public class UploadActivity extends Activity implements OnItemClickListener {
             throw new IllegalArgumentException("file can not be null");
         // 根据指定的文件大小，选择用直接上传或者分块上传
         long length = item.file.length();
-        if (item.file.length() >= Constants.MULTI_UPLOAD_THREADHOLD)
-            doMultipartUpload(bucketName, item);
+        if (item.file.length() >= 2)
+            postObject(bucketName, item);
         else
-            doSingleUpload(bucketName, item);
+            postObject(bucketName, item);
     }
 
     //流形式上传
-    private void doSingleUploadByUrl(final String bucketName,final String objectKey, String url) {
+    private void doSingleUploadByUrl() {
 
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
         try {
-            URLConnection  connection = getHttpURLConnection(url);
+
+            URLConnection  connection = getHttpURLConnection("http://ks3-console-bja.ksyun.com/api/object/download?key=tet.png&bucket=chenqichen");
             InputStream input = connection.getInputStream();
+            ObjectTagging objectTagging = new ObjectTagging();
+            objectTagging.addObjectTag("tagA", "A");
             ObjectMetadata  objectMetadata =  ObjectMetadataBuilder.build(connection.getHeaderFields());
-            final PutObjectRequest requestTwo = new PutObjectRequest(bucketName,objectKey, input, objectMetadata);
-            Adp adp = new Adp();
-            adp.setBucket("cqc-test-b");
-            adp.setCommand("tag=avinfo");
-            adp.setKey("1603423726462223-1.mp3");
-            requestTwo.setNotifyURL("http://127.0.0.1:9000/notify/url");
-            requestTwo.setAdps(Arrays.asList(adp));
+            final PutObjectRequest requestTwo = new PutObjectRequest(SRC_BUCKETNAME,SRC_OBJECTKEY, input, objectMetadata,objectTagging);
+//            Adp adp = new Adp();
+//            adp.setBucket(SRC_BUCKETNAME);
+//            adp.setCommand("tag=avinfo");
+//            adp.setKey("1603423726462223-1.mp3");
+//            requestTwo.setNotifyURL("http://127.0.0.1:9000/notify/url");
+//            requestTwo.setAdps(Arrays.asList(adp));
             client.putObject(requestTwo, new PutObjectResponseHandler() {
 
                 @Override
@@ -467,14 +476,45 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         } catch (Exception e) {
 			System.out.println(e.getMessage());
         }
+    }
+    public void postObject(final String bucketName, final UploadFile item) {
 
+        final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
+        final File file = item.file;
+        Map<String,String> postData = new HashMap<String,String>();
+        postData.put("acl","public-read");
+        postData.put("key","20150115/中文/${filename}");
+        List<String> unknowValueField = new ArrayList<String>();
+        unknowValueField.add("name");
+        PostObjectFormFields  fields =  client.getObjectFormFields(SRC_BUCKETNAME,file.getName(),postData,unknowValueField);
+        fields.getKssAccessKeyId();
+        fields.getPolicy();
+        fields.getSignature();
+
+        PostObjectRequest postObjectRequest = new PostObjectRequest(SRC_BUCKETNAME, srcObjectKey, file,fields);
+        //表单上传需要这个auth 计算签名
+        postObjectRequest.auth = client.auth;
+
+        client.postObject(postObjectRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+                System.out.println("onSuccess postObject is " + new String(response));
+            }
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                System.out.println("onFailure postObject is " + new String(response));
+            }
+        });
 
     }
-
     // 上传文件
     private void doSingleUpload(final String bucketName, final UploadFile item) {
+
+
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
         final PutObjectRequest request = new PutObjectRequest(bucketName,
-                "test.3gp", item.file);
+                "test.3gp", item.file,null,objectTagging);
         request.setCannedAcl(CannedAccessControlList.PublicRead);
 
 //		Map<String,String> customParams = new HashMap<String, String>();
@@ -577,8 +617,11 @@ public class UploadActivity extends Activity implements OnItemClickListener {
     // 分快上传
     private void doMultipartUpload(final String bucketName,
                                    final UploadFile item) {
+
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
         InitiateMultipartUploadRequest request = new InitiateMultipartUploadRequest(
-                bucketName, item.file.getName());
+                bucketName, item.file.getName(),objectTagging);
         initiateMultipartUpload(request, item);
     }
 

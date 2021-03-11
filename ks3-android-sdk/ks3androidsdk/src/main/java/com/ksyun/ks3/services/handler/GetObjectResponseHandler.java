@@ -37,16 +37,16 @@ public abstract class GetObjectResponseHandler extends
     public abstract void onTaskCancel();
 
     public abstract void onTaskSuccess(int paramInt, Header[] paramArrayOfHeader,
-            GetObjectResult getObjectResult);
+                                       GetObjectResult getObjectResult);
 
     public abstract void onTaskFailure(int paramInt, Ks3Error error, Header[] paramArrayOfHeader,
-            Throwable paramThrowable, File paramFile);
+                                       Throwable paramThrowable, File paramFile);
 
 
     @Override
     public final void onFailure(int statesCode, Header[] paramArrayOfHeader, Throwable throwable,
-            File paramFile) {
-        Ks3Error error = new Ks3Error(statesCode, new byte[] {}, throwable);
+                                File paramFile) {
+        Ks3Error error = new Ks3Error(statesCode, new byte[]{}, throwable);
         this.onTaskFailure(statesCode, error, paramArrayOfHeader, throwable, paramFile);
     }
 
@@ -144,6 +144,8 @@ public abstract class GetObjectResponseHandler extends
 
                         metaData.setExpires(value);
 
+                    } else if (name.equalsIgnoreCase(HttpHeaders.XKssObjectTagCount.toString())) {
+                        metaData.addOrEditMeta(ObjectMetadata.Meta.XKssObjectTagCount, value);
                     }
                 }
             }

@@ -25,7 +25,7 @@ public class Constants {
 
 	public static final int  READ_TIMEOUT = 3000;
 
-	public static final String SRC_BUCKETNAME = "";
+	public static final String SRC_BUCKETNAME = "ks3tools-test";
 	public static final String DST_BUCKETNAME = "";
 
 }

@@ -1,49 +1,46 @@
-package com.ksyun.ks3.services.request;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
+package com.ksyun.ks3.services.request.object;
 
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
+import com.ksyun.ks3.auth.AuthUtils;
+import com.ksyun.ks3.auth.DefaultSigner;
+import com.ksyun.ks3.auth.MD5CalculateAble;
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.model.Mimetypes;
 import com.ksyun.ks3.model.ObjectMetadata;
-import com.ksyun.ks3.model.ObjectMetadata.Meta;
+import com.ksyun.ks3.model.PostObjectFormFields;
 import com.ksyun.ks3.model.acl.AccessControlList;
+import com.ksyun.ks3.model.acl.Authorization;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
 import com.ksyun.ks3.model.transfer.MD5DigestCalculatingInputStream;
 import com.ksyun.ks3.model.transfer.RepeatableFileInputStream;
-import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTag;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.Constants;
-import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.LengthCheckInputStream;
 import com.ksyun.ks3.util.Md5Utils;
 import com.ksyun.ks3.util.StringUtils;
 import com.ksyun.ks3.util.XmlWriter;
 
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.between;
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.notCorrect;
-import static java.io.File.separator;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class PutObjectRequest extends Ks3HttpObjectRequest implements
+public class PostObjectRequest extends Ks3HttpObjectRequest implements
         MD5CalculateAble {
     private static final long serialVersionUID = 8398633676278496457L;
     private File file;
@@ -54,11 +51,18 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     private String callBackUrl;
     private String callBackBody;
     private Map<String, String> callBackHeaders;
-    /**
-     * 要进行的处理任务
-     */
-    private List<Adp> adps = new ArrayList<Adp>();
 
+    public Authorization auth;
+
+    public PostObjectFormFields getFields() {
+        return fields;
+    }
+
+    public void setFields(PostObjectFormFields fields) {
+        this.fields = fields;
+    }
+
+    public PostObjectFormFields fields;
     /**
      * 数据处理任务完成后通知的url
      */
@@ -74,61 +78,20 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
 
     private InputStream inputStream;
 
-    public PutObjectRequest(String bucketname, String key, File file) {
+    public PostObjectRequest(String bucketname, String key, File file, PostObjectFormFields fields) {
         this.setBucketname(bucketname);
         this.setObjectkey(key);
         this.setFile(file);
+        this.setFields(fields);
     }
 
-    public PutObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata, ObjectTagging objectTagging) {
-        this(bucketname, key, file);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
-            this.setTagging(objectTagging);
-        }
-    }
-
-    public PutObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata) {
-        this(bucketname, key, file);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging() .getTagSet().size() > 0) {
-            this.setTagging(metadata.getTagging());
-        }
-    }
-
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-    }
-
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata, ObjectTagging objectTagging) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (objectTagging != null && objectTagging.getTagSet() != null && objectTagging.getTagSet().size() > 0) {
-            this.setTagging(objectTagging);
-        }
-    }
-
-    @Deprecated
-    public PutObjectRequest(String bucketname, String key, InputStream inputStream, ObjectMetadata metadata, List<Adp> adps) {
-        this.setBucketname(bucketname);
-        this.setObjectkey(key);
-        this.setInputStream(inputStream);
-        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
-        if (adps != null && adps.size() > 0) {
-            this.adps = adps;
-        }
-    }
-
-    public PutObjectRequest(String bucketName, String objectName, ObjectTagging objectTagging) {
-        this.setBucketname(bucketName);
-        this.setObjectkey(objectName);
-        this.setTagging(objectTagging);
-    }
+//    public PostObjectRequest(String bucketname, String key, File file, ObjectMetadata metadata) {
+//        this(bucketname, key, file,null);
+//        this.setObjectMeta(metadata == null ? this.objectMeta : metadata);
+//        if (metadata.getTagging() != null && metadata.getTagging().getTagSet() != null && metadata.getTagging().getTagSet().size() > 0) {
+//            this.setTagging(metadata.getTagging());
+//        }
+//    }
 
     public void setCallBack(String callBackUrl, String callBackBody, Map<String, String> callBackHeaders, String notifyURL) {
         this.callBackUrl = callBackUrl;
@@ -147,50 +110,20 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     @Override
     protected void setupRequest() throws Ks3ClientException {
 
+        this.setHttpMethod(HttpMethod.POST);
+        this.addHeader("Content-Type", "multipart/form-data");
+        this.addParams("key", this.getObjectkey());
 
-        this.setHttpMethod(HttpMethod.PUT);
-        try {
-            /**
-             * 设置request body meta
-             */
-            if (file != null) {
-                this.setRequestBody(new RepeatableFileInputStream(file));
-                if (StringUtils.isBlank(getContentType())) {
-                    objectMeta.setContentType(Mimetypes.getInstance().getMimetype(file));
-                }
-                objectMeta.setContentLength(String.valueOf(file.length()));
-                this.addHeader(HttpHeaders.ContentLength, String.valueOf(file.length()));
-                String contentMd5_b64 = Md5Utils.md5AsBase64(file);
-                this.addHeader(HttpHeaders.ContentMD5.toString(), contentMd5_b64);
-            } else if (inputStream != null) {
-                this.objectMeta.setContentType("application/octet-stream");
-                long length = objectMeta.getContentLength();
-                if (length > 0) {
-                    this.setRequestBody(new LengthCheckInputStream(inputStream, length, false));
-                    this.addHeader(HttpHeaders.ContentLength, String.valueOf(length));
-                } else {
-                    this.setRequestBody(inputStream);
-                    this.addHeader(HttpHeaders.ContentLength, String.valueOf(inputStream.available()));
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(e);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new Ks3ClientException(
-                    "calculate file md5 error (" + e + ")", e);
-        }
         if (!StringUtils.isBlank(this.callBackUrl) && !StringUtils.isBlank(this.callBackBody)) {
-            this.addHeader(HttpHeaders.XKssCallBackUrl, this.callBackUrl);
-            this.addHeader(HttpHeaders.XKssCallBackBody, this.callBackBody);
+            this.addParams(HttpHeaders.XKssCallBackUrl.toString(), this.callBackUrl);
+            this.addParams(HttpHeaders.XKssCallBackBody.toString(), this.callBackBody);
 
             if (this.callBackHeaders != null && this.callBackHeaders.size() > 0) {
                 for (Map.Entry<String, String> entry : this.callBackHeaders.entrySet()) {
                     String key = entry.getKey();
                     String val = entry.getValue();
                     if (!StringUtils.isBlank(key) && key.startsWith(Constants.CALL_BACK_CUSTOM_PREFIX) && !StringUtils.isBlank(val)) {
-                        this.addHeader(key, val);
+                        this.addParams(key, val);
                     } else {
                         Log.e(Constants.LOG_TAG, "the header:" + key + "-" + val + " is not correct ,this head will be ignored");
                     }
@@ -202,26 +135,19 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
             Log.d(Constants.LOG_TAG, "the callbacurl or callbackbody is null , ignore set the callback");
         }
 
-        if (this.adps != null && adps.size() > 0) {
-            this.addHeader(HttpHeaders.AsynchronousProcessingList, URLEncoder.encode(HttpUtils.convertAdps2String(adps)));
-            if (!StringUtils.isBlank(notifyURL))
-                this.addHeader(HttpHeaders.NotifyURL, HttpUtils.urlEncode(notifyURL, false));
-        }
-
-        for (Entry<Meta, String> entry : this.objectMeta.getMetadata()
+        for (Map.Entry<ObjectMetadata.Meta, String> entry : this.objectMeta.getMetadata()
                 .entrySet()) {
-            if (!entry.getKey().equals(Meta.ContentLength.toString())) {
-                this.addHeader(entry.getKey().toString(), entry.getValue());
+            if (!entry.getKey().equals(ObjectMetadata.Meta.ContentLength.toString())) {
+                this.addParams(entry.getKey().toString(), entry.getValue());
             }
         }
-        for (Entry<String, String> entry : this.objectMeta.getUserMetadata()
+        for (Map.Entry<String, String> entry : this.objectMeta.getUserMetadata()
                 .entrySet()) {
             if (entry.getKey().startsWith(ObjectMetadata.userMetaPrefix))
-                this.addHeader(entry.getKey(), entry.getValue());
+                this.addParams(entry.getKey(), entry.getValue());
         }
         if (this.cannedAcl != null) {
-            this.addHeader(HttpHeaders.CannedAcl.toString(),
-                    cannedAcl.toString());
+            this.addParams(HttpHeaders.CannedAcl.toString(), cannedAcl.toString());
         }
         if (this.acl != null) {
             List<String> grants_fullcontrol = new ArrayList<String>();
@@ -240,23 +166,39 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
                 }
             }
             if (grants_fullcontrol.size() > 0) {
-                this.addHeader(HttpHeaders.GrantFullControl,
-                        TextUtils.join(",", grants_fullcontrol));
+                this.addParams(HttpHeaders.GrantFullControl.toString(), TextUtils.join(",", grants_fullcontrol));
             }
             if (grants_read.size() > 0) {
-                this.addHeader(HttpHeaders.GrantRead,
-                        TextUtils.join(",", grants_read));
+                this.addParams(HttpHeaders.GrantRead.toString(), TextUtils.join(",", grants_read));
             }
             if (grants_write.size() > 0) {
-                this.addHeader(HttpHeaders.GrantWrite,
-                        TextUtils.join(",", grants_write));
+                this.addParams(HttpHeaders.GrantWrite.toString(), TextUtils.join(",", grants_write));
             }
         }
         if (this.redirectLocation != null) {
-            this.addHeader(HttpHeaders.XKssWebsiteRedirectLocation,
-                    this.redirectLocation);
+            this.addParams(HttpHeaders.XKssWebsiteRedirectLocation.toString(), this.redirectLocation);
         }
-        this.setTagHeader();
+        if (this.getTagging() != null && this.getTagging().getTagSet() != null && this.getTagging().getTagSet().size() > 0) {
+            XmlWriter writer = new XmlWriter();
+            writer.start("Tagging");
+            writer.start("TagSet");
+            List<ObjectTag> tags = this.getTagging().getTagSet();
+            StringBuffer stringBuffer = new StringBuffer();
+            for (ObjectTag tag : tags) {
+                writer.start("Tag");
+                writer.start("Key").value(tag.getKey()).end();
+                if (tag.getValue() != null) {
+                    writer.start("Value").value(tag.getValue()).end();
+                    stringBuffer.append(tag.getKey() + "=" + tag.getValue() + "&");
+                }
+            }
+            if (stringBuffer.length() > 0) {
+                String xKssObjectTagStr = stringBuffer.toString().substring(0, stringBuffer.toString().length() - 1);
+                this.getParams().put(HttpHeaders.XKssObjectTag.toString(), xKssObjectTagStr);
+            }
+        }
+        this.addParams(HttpHeaders.Authorization.toString(),
+                new DefaultSigner().calculate(this.auth, this).trim());
     }
 
     @Override
@@ -348,14 +290,6 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
 
     public void setCallBackHeaders(Map<String, String> callBackHeaders) {
         this.callBackHeaders = callBackHeaders;
-    }
-
-    public List<Adp> getAdps() {
-        return adps;
-    }
-
-    public void setAdps(List<Adp> adps) {
-        this.adps = adps;
     }
 
     public String getNotifyURL() {

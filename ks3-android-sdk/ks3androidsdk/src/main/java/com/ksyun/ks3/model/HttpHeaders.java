@@ -33,7 +33,12 @@ public enum HttpHeaders {
 	XKssCallBackUrl("x-kss-callbackurl"),
 	XKssCallBackBody("x-kss-callbackbody"),
 	AsynchronousProcessingList("kss-async-process",false),
-	NotifyURL("kss-notifyurl", false);
+	NotifyURL("kss-notifyurl", false),
+	/*Object tag */
+	XKssObjectTag("x-kss-tagging"),
+	XKssObjectTagDIRECTIVE("x-kss-tagging-directive"),
+	XKssObjectTagCount("x-kss-tagging-count"),
+	XKssSourceUrl("x-kss-sourceurl");
 	private String value;
 	private boolean isSpecHeader;
 	HttpHeaders(String value) {

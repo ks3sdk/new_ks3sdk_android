@@ -1,7 +1,6 @@
 package com.ksyun.ks3.services;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +87,6 @@ import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
-import com.ksyun.ks3.services.request.object.PostObjectRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
 import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
@@ -688,9 +686,6 @@ public class Ks3Client implements Ks3 {
                                 Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
-    public void postObject(PostObjectRequest request, Ks3HttpResponceHandler handler) {
-        this.invoke(auth, request, handler, true);
-    }
     public void putObjectFetch(PutObjectFetchRequest request, Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
@@ -711,13 +706,13 @@ public class Ks3Client implements Ks3 {
     }
 
     public PostObjectFormFields getObjectFormFields(String bucket, String filename,
-                                           Map<String, String> postFormData, List<String> unknowValueFormFiled) throws Ks3ClientException {
+                                           Map<String, String> postFormData, Map<String,String> unknowValueFormFiled) throws Ks3ClientException {
         if(StringUtils.isBlank(bucket))
             throw ClientIllegalArgumentExceptionGenerator.notNull("bucket");
         if(postFormData==null)
             postFormData = new HashMap<String,String>();
         if(unknowValueFormFiled==null)
-            unknowValueFormFiled = new ArrayList<String>();
+            unknowValueFormFiled = new HashMap<String,String>();
         postFormData.put("bucket",bucket);
         PostPolicy policy = new PostPolicy();
         //签名将在五小时后过期
@@ -732,12 +727,12 @@ public class Ks3Client implements Ks3 {
                 policy.getConditions().add(condition);
             }
         }
-        for(String field:unknowValueFormFiled){
-            if(!Constants.postFormIgnoreFields.contains(field)){
+        for(Map.Entry<String,String> entry:unknowValueFormFiled.entrySet()){
+            if(!Constants.postFormIgnoreFields.contains(entry.getKey())){
                 PostPolicyCondition condition = new PostPolicyCondition();
                 condition.setMatchingType(PostPolicyCondition.MatchingType.startsWith);
-                condition.setParamA("$"+field);
-                condition.setParamB("");
+                condition.setParamA("$"+entry.getKey());
+                condition.setParamB(entry.getValue());
                 policy.getConditions().add(condition);
             }
         }

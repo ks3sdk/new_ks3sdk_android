@@ -29,6 +29,9 @@
         <item>Put BucketPolicy</item>
         <item>Put BucketQuota</item>
         <item>Put and Get Adp</item>
+        <item>Put Tag</item>
+        <item>Fetch Object</item>
+        <item>Post Object</item>
     </string-array>
     <string name="title_activity_multi_upload">MultiUploadActivity</string>
     <string name="large_text">

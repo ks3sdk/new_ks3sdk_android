@@ -84,6 +84,10 @@ public abstract class HeadObjectResponseHandler extends Ks3HttpResponceHandler {
 				{
 					meta.setExpires(h.getValue());
 				}
+				else if(h.getName().equalsIgnoreCase(Meta.XKssObjectTagCount.toString()))
+				{
+					meta.setObjectTagCount(h.getValue());
+				}
 				result.setObjectMetadata(meta);
 			}
 		}catch(Exception exception){

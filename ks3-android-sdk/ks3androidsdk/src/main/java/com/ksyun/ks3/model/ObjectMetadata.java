@@ -1,7 +1,10 @@
 package com.ksyun.ks3.model;
 
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author TANGLUO
@@ -13,7 +16,8 @@ public class ObjectMetadata {
                 HttpHeaders.ContentLength), ContentDisposition(
                 HttpHeaders.ContentDisposition), ContentEncoding(
                 HttpHeaders.ContentEncoding), Expires(HttpHeaders.Expires), LastModified(HttpHeaders.LastModified),
-        Etag(HttpHeaders.ETag), ContentMD5(HttpHeaders.ContentMD5), ContentLanguage(HttpHeaders.ContentLanguage);;
+        Etag(HttpHeaders.ETag), ContentMD5(HttpHeaders.ContentMD5), ContentLanguage(HttpHeaders.ContentLanguage),  XKssObjectTagCount(HttpHeaders.XKssObjectTagCount),
+        STORAGE_CLASS(HttpHeaders.ContentLanguage);
         private HttpHeaders header;
 
         public HttpHeaders getHeader() {
@@ -84,6 +88,23 @@ public class ObjectMetadata {
         return this.metadata.get(Meta.Etag);
     }
 
+    public ObjectTagging getTagging() {
+        return tagging;
+    }
+
+    public void setTagging(ObjectTagging tagging) {
+        this.tagging = tagging;
+    }
+
+    private ObjectTagging tagging;
+
+    public ObjectTagging getObjectTagging() {
+        return tagging;
+    }
+
+    public void setObjectTagging(ObjectTagging tagging) {
+        this.tagging = tagging;
+    }
 
     public void addOrEditUserMeta(String key, String value) {
         if (!key.startsWith(ObjectMetadata.userMetaPrefix))
@@ -107,5 +128,13 @@ public class ObjectMetadata {
 
     public String getContentType() {
         return metadata.get(HttpHeaders.ContentType.toString());
+    }
+
+
+    public String getObjectTagCount() {
+        return metadata.get(HttpHeaders.XKssObjectTagCount.toString());
+    }
+    public void setObjectTagCount(String count) {
+        metadata.put(Meta.XKssObjectTagCount, count);
     }
 }

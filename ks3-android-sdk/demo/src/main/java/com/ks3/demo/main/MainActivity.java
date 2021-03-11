@@ -24,6 +24,7 @@ import com.ksyun.ks3.model.Ks3ObjectSummary;
 import com.ksyun.ks3.model.ObjectListing;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.Owner;
+import com.ksyun.ks3.model.PostObjectFormFields;
 import com.ksyun.ks3.model.acl.AccessControlPolicy;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
@@ -47,7 +48,7 @@ import com.ksyun.ks3.services.handler.GetBucketPolicyResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketQuotaResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
-import com.ksyun.ks3.services.handler.GetObjectAdpResponceHandler;
+import com.ksyun.ks3.services.handler.GetObjectTaggingResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
 import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
@@ -58,7 +59,9 @@ import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
 import com.ksyun.ks3.services.handler.PutObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutObjectAdpResponceHandler;
+import com.ksyun.ks3.services.handler.PutObjectFetchResponseHandler;
 import com.ksyun.ks3.services.handler.PutObjectResponseHandler;
+import com.ksyun.ks3.services.request.CopyObjectRequest;
 import com.ksyun.ks3.services.request.DeleteBucketPolicyRequest;
 import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
@@ -72,15 +75,31 @@ import com.ksyun.ks3.services.request.PutBucketACLRequest;
 import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.adp.Adp;
-import com.ksyun.ks3.services.request.adp.AdpTask;
-import com.ksyun.ks3.services.request.adp.GetAdpRequest;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
+import com.ksyun.ks3.services.request.object.PostObjectRequest;
+import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
+import com.ksyun.ks3.services.request.object.PutObjectFetchResult;
+import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
+import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
+import com.ksyun.ks3.services.request.tag.ObjectTagging;
+import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
 
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -111,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
     public static final int LIST_OBJECTS = 12;
     public static final int COPY_OBJECT = 17;
     public static final int PUT_OBJECT_ADP = 21;
+    public static final int PUT_OBJECT_TAG = 22;
+    public static final int FETCH_OBJECT = 23;
+    public static final int POST_OBJECT = 24;
     // Upload
     public static final int UPLOAD = 13;
     // Download
@@ -229,8 +251,8 @@ public class MainActivity extends AppCompatActivity {
                         copyObject();
                         break;
                     case PUT_BUCKET_CRR:
-                       // getBucketCrr();
-                       // deleteBucketCrr();
+                        // getBucketCrr();
+                        // deleteBucketCrr();
                         putBucketCrr();
                         break;
                     case PUT_BUCKET_QUOTA:
@@ -243,6 +265,16 @@ public class MainActivity extends AppCompatActivity {
                     case PUT_OBJECT_ADP:
                         testPutAndQueryAdp();
                         break;
+                    case PUT_OBJECT_TAG:
+                        testPutObjTag();
+                        break;
+                    case FETCH_OBJECT:
+                        testPutFetchObj();
+                        break;
+                    case POST_OBJECT:
+                        postObject();
+                        break;
+
                     default:
                         break;
                 }
@@ -252,49 +284,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void copyObject() {
-        bucketCopyObjectInpuDialog.setOnBucketCopyObjectDialogListener(new BucketCopyObjectInpuDialog.OnBucketCopyObjectDialogListener() {
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "b");
+        objectTagging.setTaggingDirective("Replace");
+
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(SRC_BUCKETNAME, "ZZZb", SRC_BUCKETNAME, SRC_OBJECTKEY, objectTagging);
+        client.copyObject(copyObjectRequest, new CopyObjectResponseHandler() {
             @Override
-            public void confirmBucketAndObject(String destinationBucket, String destinationObjectKey, String sourceBucketName, String sourceKey) {
-                client.copyObject(destinationBucket, destinationObjectKey,
-                        sourceBucketName, sourceKey, new CopyObjectResponseHandler() {
-                            @Override
-                            public void onFailure(int statesCode, Ks3Error error,
-                                                  Header[] responceHeaders, String response, Throwable paramThrowable) {
-                                Log.e("tag", "copyObject--onFailure---statesCode：" + statesCode +
-                                        "---response:" + response);
-                            }
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                System.out.println("fail copyObjectResponse is " + new String(response));
+            }
 
-                            @Override
-                            public void onSuccess(int statesCode, Header[] responceHeaders,
-                                                  CopyResult result) {
-                                StringBuffer stringBuffer = new StringBuffer();
-                                stringBuffer
-                                        .append("lastModifiedDate      = "
-                                                + result
-                                                .getLastModified())
-                                        .append("\n");
-                                stringBuffer.append(
-                                        "ETag                  = "
-                                                + result
-                                                .getETag())
-                                        .append("\n");
-                                Intent intent = new Intent(
-                                        MainActivity.this,
-                                        RESTAPITestResult.class);
-
-                                Bundle data = new Bundle();
-                                data.putString(RESULT,
-                                        stringBuffer.toString());
-                                data.putString(API,
-                                        "copy object Result");
-                                intent.putExtras(data);
-                                startActivity(intent);
-                                Log.e("tag", "headObject--onSuccess---" + stringBuffer.toString());
-                            }
-                        });
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, CopyResult result) {
+                System.out.println("success copyObjectResponse is " + result.toString());
             }
         });
-        bucketCopyObjectInpuDialog.show();
     }
 
     private void putObject() {
@@ -486,10 +491,9 @@ public class MainActivity extends AppCompatActivity {
                                                         + headObjectResult
                                                         .getLastmodified())
                                                 .append("\n");
-                                        stringBuffer.append(
-                                                "ETag                  = "
-                                                        + headObjectResult
-                                                        .getETag())
+                                        stringBuffer.append("ETag                  = "
+                                                + headObjectResult
+                                                .getETag())
                                                 .append("\n");
                                         ObjectMetadata metadata = headObjectResult
                                                 .getObjectMetadata();
@@ -499,13 +503,11 @@ public class MainActivity extends AppCompatActivity {
                                                 RESTAPITestResult.class);
 
                                         Bundle data = new Bundle();
-                                        data.putString(RESULT,
-                                                stringBuffer.toString());
-                                        data.putString(API,
-                                                "head object Result");
+                                        data.putString(RESULT, headObjectResult.toString());
+                                        data.putString(API, "head object Result");
                                         intent.putExtras(data);
                                         startActivity(intent);
-                                        Log.e("tag", "headObject--onSuccess---" + stringBuffer.toString());
+                                        Log.e("tag", "headObject--onSuccess---" + headObjectResult.toString());
                                     }
 
                                     @Override
@@ -1116,10 +1118,10 @@ public class MainActivity extends AppCompatActivity {
                 StringBuffer stringBuffer = new StringBuffer();
                 for (Bucket bucket : resultList) {
                     stringBuffer.append(bucket.getName()).append("\n");
-                    stringBuffer.append(bucket.getCreationDate()).append("\n");
-                    stringBuffer.append(bucket.getOwner().getDisplayName())
-                            .append("\n");
-                    stringBuffer.append(bucket.getOwner().getId()).append("\n");
+//                    stringBuffer.append(bucket.getCreationDate()).append("\n");
+//                    stringBuffer.append(bucket.getOwner().getDisplayName())
+//                            .append("\n");
+//                    stringBuffer.append(bucket.getOwner().getId()).append("\n");
                 }
                 Intent intent = new Intent(MainActivity.this,
                         RESTAPITestResult.class);
@@ -1222,7 +1224,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtras(data);
                 startActivity(intent);
                 Log.e("tag", "PutBucketCRR--onSuccess---" + "statesCode:" + statesCode);
-              //  deleteBucketCrr();
+                //  deleteBucketCrr();
             }
 
             @Override
@@ -1442,12 +1444,12 @@ public class MainActivity extends AppCompatActivity {
         //请求内容
         BucketQuota quota = new BucketQuota(1000000);
 
-        PutBuckeQuotaRequest quotaRequest = new PutBuckeQuotaRequest("jiangrantest", quota);
+        PutBuckeQuotaRequest quotaRequest = new PutBuckeQuotaRequest("chenqichen", quota);
 
         client.putBucketQuota(quotaRequest, new Ks3HttpResponceHandler() {
             @Override
             public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
-                System.out.println("onSuccess "+ new String(response));
+                System.out.println("onSuccess " + new String(response));
             }
 
             @Override
@@ -1475,7 +1477,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void getBucketQuota() {
 
-        GetBucketQuotaRequest quotaRequest = new GetBucketQuotaRequest("jiangrantest");
+        GetBucketQuotaRequest quotaRequest = new GetBucketQuotaRequest("chenqichen");
 
         client.getBucketQuota(quotaRequest, new GetBucketQuotaResponceHandler() {
             @Override
@@ -1498,17 +1500,18 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(int statesCode, Header[] responceHeaders, BucketQuota quota) {
-                System.out.println("onSuccess storageQuota  is "+ quota.getStorageQuota());
+                System.out.println("onSuccess storageQuota  is " + quota.getStorageQuota());
             }
         });
     }
+
     /**
      * 音视频处理
      */
     public void testPutAndQueryAdp() {
 
-        String srcObjectKey =  "test/file1.mp4";
-        String newObjectKey =  "new/Upload3.mp4";
+        String srcObjectKey = "test/file1.mp4";
+        String newObjectKey = "new/Upload3.mp4";
         //音视频处理
         Adp avop = new Adp();
         avop.setBucket(DST_BUCKETNAME);
@@ -1536,7 +1539,7 @@ public class MainActivity extends AppCompatActivity {
         //视频拼接
         Adp avconcat = new Adp();
         avconcat.setBucket(DST_BUCKETNAME);
-        avconcat.setCommand("tag=avconcat&f=mp4&mode=1&file=" +  com.ksyun.ks3.util.Base64.encode("test/file2.mp4".getBytes()));
+        avconcat.setCommand("tag=avconcat&f=mp4&mode=1&file=" + com.ksyun.ks3.util.Base64.encode("test/file2.mp4".getBytes()));
         avconcat.setKey(newObjectKey);
 
         PutAdpRequest adpRequest = new PutAdpRequest(SRC_BUCKETNAME, srcObjectKey, Arrays.asList(avconcat));
@@ -1594,6 +1597,164 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("taskId is " + adpResult.getTaskId());
             }
         });
+    }
 
+    public void postObject() {
+
+        final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
+        final File file = new File(TEST_MULTIUPLOAD_FILE);
+        Map<String, String> postData = new HashMap<String, String>();
+        postData.put("acl", "public-read");
+        postData.put("key", "20150115/中文/${filename}");
+        List<String> unknowValueField = new ArrayList<String>();
+        unknowValueField.add("name");
+        PostObjectFormFields fields = client.getObjectFormFields(SRC_BUCKETNAME, file.getName(), postData, unknowValueField);
+        fields.getKssAccessKeyId();
+        fields.getPolicy();
+        fields.getSignature();
+        String uploadUrl = END_POINT;
+        String end = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "******";
+        try {
+            URL url = new URL(uploadUrl);
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url
+                    .openConnection();
+            httpURLConnection.setDoInput(true);
+            httpURLConnection.setDoOutput(true);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.setRequestMethod("POST");
+            httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
+            httpURLConnection.setRequestProperty("Charset", "UTF-8");
+            httpURLConnection.setRequestProperty("Content-Type",
+                    "multipart/form-data;boundary=" + boundary);
+
+            DataOutputStream dos = new DataOutputStream(httpURLConnection.getOutputStream());
+            dos.writeBytes(twoHyphens + boundary + end);
+            dos.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\""
+                    + file.getName()
+                    + "\"" + end);
+            dos.writeBytes(end);
+            //将SD 文件通过输入流读到Java代码中-++++++++++++++++++++++++++++++`````````````````````````
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[8192]; // 8k
+            int count = 0;
+            while ((count = fis.read(buffer)) != -1) {
+                dos.write(buffer, 0, count);
+
+            }
+            fis.close();
+            System.out.println("file send to server............");
+            dos.writeBytes(end);
+            dos.writeBytes(twoHyphens + boundary + twoHyphens + end);
+            dos.flush();
+
+            //读取服务器返回结果
+            InputStream is = httpURLConnection.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is, "utf-8");
+            BufferedReader br = new BufferedReader(isr);
+            String result = br.readLine();
+
+            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+            dos.close();
+            is.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            setTitle(e.getMessage());
+        }
+
+    }
+
+    public void putObjectFetch() {
+
+        final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
+        String sourceUrl = "";
+        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, srcObjectKey, sourceUrl);
+        client.putObjectFetch(putObjectFetchRequest, new PutObjectFetchResponseHandler() {
+            @Override
+            public void onTaskFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                System.out.println("fail putObjectFetch is " + response);
+            }
+
+            @Override
+            public void onTaskSuccess(int statesCode, Header[] responceHeaders, PutObjectFetchResult result) {
+                System.out.println("success putObjectFetch is " + result.toString());
+            }
+        });
+
+    }
+
+    /**
+     * put object tag
+     */
+    public void testPutObjTag() {
+
+        //文档参考 -> https://docs.ksyun.com/documents/949
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
+
+        PutObjectTaggingRequest taggingRequest = new PutObjectTaggingRequest(SRC_BUCKETNAME, SRC_OBJECTKEY, objectTagging);
+        client.putObjectTag(taggingRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+
+                System.out.println("success putObjectTaggingResponse is " + response.toString());
+                GetObjectTaggingRequest taggingRequest = new GetObjectTaggingRequest(SRC_BUCKETNAME, SRC_OBJECTKEY);
+                client.getObjectTag(taggingRequest, new GetObjectTaggingResponseHandler() {
+                    @Override
+                    public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                        System.out.println("fail getObjectTaggingResponse is " + response.toString());
+                    }
+
+                    @Override
+                    public void onSuccess(int statesCode, Header[] responceHeaders, ObjectTagging tagging) {
+                        System.out.println("success getObjectTaggingResponse is " + tagging.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                System.out.println("fail putObjectTaggingResponse is " + new String(response));
+            }
+        });
+
+        DeleteObjectTaggingRequest deleteObjectTaggingRequest = new DeleteObjectTaggingRequest(SRC_BUCKETNAME, SRC_OBJECTKEY);
+        client.deleteObjectTag(deleteObjectTaggingRequest, new HeadBucketResponseHandler() {
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                System.out.println("fail DeleteObjectTaggingRequest is " + new String(response));
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders) {
+                System.out.println("onSuccess DeleteObjectTaggingRequest");
+            }
+        });
+    }
+
+    /**
+     * testPutFetchObj
+     */
+    public void testPutFetchObj() {
+
+        ObjectTagging objectTagging = new ObjectTagging();
+        objectTagging.addObjectTag("tagA", "A");
+
+        PutObjectFetchRequest putObjectFetchRequest = new PutObjectFetchRequest(SRC_BUCKETNAME, "zzzz", "http://ks3tools-online.ks3-cn-beijing.ksyun.com/tools/release/ks3up-tool-2.1.1-dist.zip", objectTagging);
+        putObjectFetchRequest.setCallBack("https://open.feishu.cn/open-apis/bot/v2/hook/704de274-447f-400f-a634-075df20fd1ba", putObjectFetchRequest.getCallBackBody(), putObjectFetchRequest.getHeader());
+        client.putObjectFetch(putObjectFetchRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+
+                System.out.println("success putObjectFetchResponse is " + new String(response));
+            }
+
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                System.out.println("fail putObjectFetchResponse is " + new String(response));
+            }
+        });
     }
 }

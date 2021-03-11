@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "1.4.8"
+version = "1.4.9"
 
 
 android {
@@ -36,20 +36,23 @@ task exportJar(type: Copy) {
     from('build/intermediates/aar_main_jar/release/')
     into('build/libs/')
     include('classes.jar')
-    rename ('classes.jar', 'ks3-androidsdk-1.4.7.jar')
+    rename ('classes.jar', 'ks3-androidsdk-1.4.9.jar')
 }
 task exportJar2(type: Copy) {
     delete 'build/libs/'+ "ks3-androidsdk-1.4.9.jar"
     from('build/intermediates/packaged-classes/release/')
     into('build/libs/')
     include('classes.jar')
-    rename ('classes.jar', "ks3-androidsdk-1.4.8.jar")
+    rename ('classes.jar', "ks3-androidsdk-1.4.9.jar")
 }
 
 
 dependencies {
     api 'com.loopj.android:android-async-http:1.4.9'
     api 'com.google.code.gson:gson:2.8.5'
+    api 'joda-time:joda-time:2.9.9'
+    api 'com.squareup.okio:okio:1.13.0'
+    api 'com.squareup.okhttp3:okhttp:3.9.0'
 }
 
 def siteUrl = 'https://github.com/ks3sdk/ks3-android-sdk' // 项目的主页

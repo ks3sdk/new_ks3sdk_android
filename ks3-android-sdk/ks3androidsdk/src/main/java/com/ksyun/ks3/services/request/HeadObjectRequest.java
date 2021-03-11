@@ -6,6 +6,7 @@ import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.util.StringUtils;
 
 public class HeadObjectRequest extends Ks3HttpRequest {
+
 	private static final long serialVersionUID = 3060892869127898914L;
 
 	public HeadObjectRequest(String bucketname, String objectkey) {

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class RequestUtils {
 	public static List<String> subResource = Arrays.asList(new String[]{"acl", "lifecycle", "location", "crr",
-			"logging", "notification", "partNumber",
+			"logging", "notification", "partNumber", "tagging", "fetch",
             "policy", "requestPayment", "torrent", "uploadId", "uploads", "versionId","quota","queryadp","adp",
             "versioning", "versions", "website", "delete", "thumbnail"});
 	

@@ -1,5 +1,6 @@
 package com.ksyun.ks3.services.handler;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import cz.msebera.android.httpclient.Header;
@@ -48,6 +49,7 @@ public abstract class PutObjectResponseHandler extends Ks3HttpResponceHandler im
 	@Override
 	public final void onProgress(long bytesWritten, long totalSize) {}
 
+	@SuppressLint("LongLogTag")
 	@Override
 	protected void finalize() throws Throwable {
 		Log.d("PutObjectResponseHandler", "PutObjectResponseHandler finalize:"+this);

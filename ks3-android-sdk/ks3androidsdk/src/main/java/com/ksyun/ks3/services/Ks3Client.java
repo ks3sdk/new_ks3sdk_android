@@ -2,14 +2,23 @@ package com.ksyun.ks3.services;
 
 import java.io.File;
 import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import cz.msebera.android.httpclient.Header;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
 
+import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.ks3.demo.main.utils.DateUtils;
 import com.ksyun.ks3.auth.AuthUtils;
@@ -97,8 +106,30 @@ import com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator;
 import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.StringUtils;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.lzy.okgo.OkGo;
+import com.lzy.okgo.cache.CacheEntity;
+import com.lzy.okgo.cache.CacheMode;
+import com.lzy.okgo.cookie.CookieJarImpl;
+import com.lzy.okgo.cookie.store.DBCookieStore;
+import com.lzy.okgo.https.HttpsUtils;
+import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
+import com.lzy.okgo.model.HttpHeaders;
+import com.lzy.okgo.model.HttpParams;
+import com.lzy.okgo.request.DeleteRequest;
+import com.lzy.okgo.request.GetRequest;
+import com.lzy.okgo.request.HeadRequest;
+import com.lzy.okgo.request.OptionsRequest;
+import com.lzy.okgo.request.PatchRequest;
+import com.lzy.okgo.request.PostRequest;
+import com.lzy.okgo.request.PutRequest;
+import com.lzy.okgo.request.TraceRequest;
+import com.lzy.okgo.utils.HttpUtils;
 
 import org.joda.time.DateTime;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.X509TrustManager;
 
 public class Ks3Client implements Ks3 {
     private Ks3ClientConfiguration clientConfiguration;
@@ -107,6 +138,45 @@ public class Ks3Client implements Ks3 {
     private Ks3HttpExector client = new Ks3HttpExector();
     private Context context = null;
     public AuthListener authListener = null;
+    public static Ks3Client mInstance = null;
+
+    public static final long DEFAULT_MILLISECONDS = 60000;      //默认的超时时间
+    public static long REFRESH_TIME = 300;                      //回调刷新时间（单位ms）
+
+    private Handler mDelivery;              //用于在主线程执行的调度器
+    private OkHttpClient okHttpClient;      //ok请求的客户端
+    private HttpParams mCommonParams;       //全局公共请求参数
+    private HttpHeaders mCommonHeaders;     //全局公共请求头
+    private int mRetryCount;                //全局超时重试次数
+    private CacheMode mCacheMode;           //全局缓存模式
+    private long mCacheTime;                //全局缓存过期时间,默认永不过期
+
+    /**
+     * 在入口全局初始化
+     *
+     * @return
+     */
+    public static Ks3Client initKs3Client(String accesskeyid, String accesskeysecret, Application context) {
+        if (mInstance == null) {
+            synchronized (Ks3Client.class) {
+                if (mInstance == null) {
+                    mInstance = new Ks3Client(accesskeyid, accesskeysecret, context);
+                    mInstance.initOkGo(context);
+                }
+            }
+        }
+        return mInstance;
+    }
+
+    /**
+     * 单例实现
+     *
+     * @return
+     */
+    public static Ks3Client getInstance() {
+        return mInstance;
+    }
+
 
     public Ks3Client(String accesskeyid, String accesskeysecret, Context context) {
         this(accesskeyid, accesskeysecret, Ks3ClientConfiguration
@@ -118,7 +188,6 @@ public class Ks3Client implements Ks3 {
         this.auth = new Authorization(accesskeyid, accesskeysecret);
         this.clientConfiguration = clientConfiguration;
         this.context = context;
-        //init();
     }
 
     public Ks3Client(Authorization auth, Context context) {
@@ -130,7 +199,6 @@ public class Ks3Client implements Ks3 {
         this.auth = auth;
         this.clientConfiguration = clientConfiguration;
         this.context = context;
-//		init();
     }
 
     public Ks3Client(AuthListener listener, Context context) {
@@ -138,12 +206,10 @@ public class Ks3Client implements Ks3 {
                 context);
     }
 
-    public Ks3Client(AuthListener listener,
-                     Ks3ClientConfiguration clientConfiguration, Context context) {
+    public Ks3Client(AuthListener listener,  Ks3ClientConfiguration clientConfiguration, Context context) {
         this.authListener = listener;
         this.clientConfiguration = clientConfiguration;
         this.context = context;
-//		init();
     }
 
     public Authorization getAuth() {
@@ -154,9 +220,6 @@ public class Ks3Client implements Ks3 {
         this.auth = auth;
     }
 
-//	private void init(String endPoint) {
-//		setEndpoint(Constants.ClientConfig_END_POINT);
-//	}
 
     public void setConfiguration(Ks3ClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
@@ -428,6 +491,7 @@ public class Ks3Client implements Ks3 {
         return this.putObject(
                 new PutObjectRequest(bucketname, objectkey, file), handler);
     }
+
     @Override
     public Ks3HttpRequest putObject(String bucketname, String objectkey,
                                     File file, ObjectMetadata objectmeta,
@@ -653,6 +717,7 @@ public class Ks3Client implements Ks3 {
                                    Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
+
     public void putBucketQuota(PutBuckeQuotaRequest request,
                                Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
@@ -672,20 +737,23 @@ public class Ks3Client implements Ks3 {
         this.invoke(auth, request, handler, true);
     }
 
-    public void getAdpTask(GetAdpRequest request,Ks3HttpResponceHandler handler){
+    public void getAdpTask(GetAdpRequest request, Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
 
     public void putObjectTag(PutObjectTaggingRequest request, Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
-    public void getObjectTag(GetObjectTaggingRequest request, GetObjectTaggingResponseHandler handler){
+
+    public void getObjectTag(GetObjectTaggingRequest request, GetObjectTaggingResponseHandler handler) {
         this.invoke(auth, request, handler, true);
     }
+
     public void deleteObjectTag(DeleteObjectTaggingRequest request,
                                 Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
+
     public void putObjectFetch(PutObjectFetchRequest request, Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
@@ -706,32 +774,32 @@ public class Ks3Client implements Ks3 {
     }
 
     public PostObjectFormFields getObjectFormFields(String bucket, String filename,
-                                           Map<String, String> postFormData, Map<String,String> unknowValueFormFiled) throws Ks3ClientException {
-        if(StringUtils.isBlank(bucket))
+                                                    Map<String, String> postFormData, Map<String, String> unknowValueFormFiled) throws Ks3ClientException {
+        if (StringUtils.isBlank(bucket))
             throw ClientIllegalArgumentExceptionGenerator.notNull("bucket");
-        if(postFormData==null)
-            postFormData = new HashMap<String,String>();
-        if(unknowValueFormFiled==null)
-            unknowValueFormFiled = new HashMap<String,String>();
-        postFormData.put("bucket",bucket);
+        if (postFormData == null)
+            postFormData = new HashMap<String, String>();
+        if (unknowValueFormFiled == null)
+            unknowValueFormFiled = new HashMap<String, String>();
+        postFormData.put("bucket", bucket);
         PostPolicy policy = new PostPolicy();
         //签名将在五小时后过期
         policy.setExpiration(DateUtils.convertDate2Str(new DateTime().plusHours(5).toDate(), DateUtils.DATETIME_PROTOCOL.ISO8861));
 
-        for(Map.Entry<String,String> entry:postFormData.entrySet()){
-            if(!Constants.postFormIgnoreFields.contains(entry.getKey())){
+        for (Map.Entry<String, String> entry : postFormData.entrySet()) {
+            if (!Constants.postFormIgnoreFields.contains(entry.getKey())) {
                 PostPolicyCondition condition = new PostPolicyCondition();
                 condition.setMatchingType(PostPolicyCondition.MatchingType.eq);
-                condition.setParamA("$"+entry.getKey());
+                condition.setParamA("$" + entry.getKey());
                 condition.setParamB(entry.getValue().replace("${filename}", filename));
                 policy.getConditions().add(condition);
             }
         }
-        for(Map.Entry<String,String> entry:unknowValueFormFiled.entrySet()){
-            if(!Constants.postFormIgnoreFields.contains(entry.getKey())){
+        for (Map.Entry<String, String> entry : unknowValueFormFiled.entrySet()) {
+            if (!Constants.postFormIgnoreFields.contains(entry.getKey())) {
                 PostPolicyCondition condition = new PostPolicyCondition();
                 condition.setMatchingType(PostPolicyCondition.MatchingType.startsWith);
-                condition.setParamA("$"+entry.getKey());
+                condition.setParamA("$" + entry.getKey());
                 condition.setParamB(entry.getValue());
                 policy.getConditions().add(condition);
             }
@@ -741,26 +809,26 @@ public class Ks3Client implements Ks3 {
 
     public PostObjectFormFields postObject(PostPolicy policy)
             throws Ks3ClientException {
-        Map<String,Object> policyMap = new HashMap<String,Object>();
+        Map<String, Object> policyMap = new HashMap<String, Object>();
         policyMap.put("expiration", policy.getExpiration());
 
         List<List<String>> conditions = new ArrayList<List<String>>();
-        for(PostPolicyCondition condition : policy.getConditions()){
+        for (PostPolicyCondition condition : policy.getConditions()) {
             List<String> conditionList = new ArrayList<String>();
-            if(condition.getMatchingType()!= PostPolicyCondition.MatchingType.contentLengthRange){
-                if(!condition.getParamA().startsWith("$")){
-                    condition.setParamA("$"+condition.getParamA());
+            if (condition.getMatchingType() != PostPolicyCondition.MatchingType.contentLengthRange) {
+                if (!condition.getParamA().startsWith("$")) {
+                    condition.setParamA("$" + condition.getParamA());
                 }
-            }else{
-                if(!StringUtils.checkLong(condition.getParamA())||!StringUtils.checkLong(condition.getParamB())){
+            } else {
+                if (!StringUtils.checkLong(condition.getParamA()) || !StringUtils.checkLong(condition.getParamB())) {
                     throw new ClientIllegalArgumentException("contentLengthRange匹配规则的参数A和参数B都应该是Long型");
                 }
             }
             conditionList.add(condition.getMatchingType().toString());
             //表单中的项是忽略大小写的
-            if(condition.getMatchingType()!= PostPolicyCondition.MatchingType.contentLengthRange&&!Constants.postFormUnIgnoreCase.contains(condition.getParamA().substring(1))){
+            if (condition.getMatchingType() != PostPolicyCondition.MatchingType.contentLengthRange && !Constants.postFormUnIgnoreCase.contains(condition.getParamA().substring(1))) {
                 conditionList.add(condition.getParamA().toLowerCase());
-            }else{
+            } else {
                 conditionList.add(condition.getParamA());
             }
             conditionList.add(condition.getParamB());
@@ -776,7 +844,7 @@ public class Ks3Client implements Ks3 {
         try {
             fields.setSignature(AuthUtils.calcSignature(auth.getAccessKeySecret(), policyBase64));
         } catch (SignatureException e) {
-            throw new Ks3ClientException("计算签名出错",e);
+            throw new Ks3ClientException("计算签名出错", e);
         }
         return fields;
     }
@@ -791,10 +859,6 @@ public class Ks3Client implements Ks3 {
         client.cancel(context);
     }
 
-    @Override
-    public Context getContext() {
-        return this.context;
-    }
 
     @Override
     public ArrayList<Bucket> syncListBuckets() throws Throwable {
@@ -1595,5 +1659,325 @@ public class Ks3Client implements Ks3 {
             throw error;
         }
         return result;
+    }
+
+    /**
+     * get请求
+     */
+    public static <T> GetRequest<T> get(String url) {
+        return new GetRequest<>(url);
+    }
+
+    /**
+     * post请求
+     */
+    public static <T> PostRequest<T> post(String url) {
+        return new PostRequest<>(url);
+    }
+
+    /**
+     * put请求
+     */
+    public static <T> PutRequest<T> put(String url) {
+        return new PutRequest<>(url);
+    }
+
+    /**
+     * head请求
+     */
+    public static <T> HeadRequest<T> head(String url) {
+        return new HeadRequest<>(url);
+    }
+
+    /**
+     * delete请求
+     */
+    public static <T> DeleteRequest<T> delete(String url) {
+        return new DeleteRequest<>(url);
+    }
+
+    /**
+     * options请求
+     */
+    public static <T> OptionsRequest<T> options(String url) {
+        return new OptionsRequest<>(url);
+    }
+
+    /**
+     * patch请求
+     */
+    public static <T> PatchRequest<T> patch(String url) {
+        return new PatchRequest<>(url);
+    }
+
+    /**
+     * trace请求
+     */
+    public static <T> TraceRequest<T> trace(String url) {
+        return new TraceRequest<>(url);
+    }
+    /**
+     * 获取全局上下文
+     */
+    public Context getContext() {
+        HttpUtils.checkNotNull(context, "please call OkGo.getInstance().init() first in application!");
+        return context;
+    }
+
+    public Handler getDelivery() {
+        return mDelivery;
+    }
+
+    public OkHttpClient getOkHttpClient() {
+        HttpUtils.checkNotNull(okHttpClient, "please call OkGo.getInstance().setOkHttpClient() first in application!");
+        return okHttpClient;
+    }
+
+    /**
+     * 必须设置
+     */
+    public Ks3Client setOkHttpClient(OkHttpClient okHttpClient) {
+        HttpUtils.checkNotNull(okHttpClient, "okHttpClient == null");
+        this.okHttpClient = okHttpClient;
+        return this;
+    }
+
+    /**
+     * 获取全局的cookie实例
+     */
+    public CookieJarImpl getCookieJar() {
+        return (CookieJarImpl) okHttpClient.cookieJar();
+    }
+
+    /**
+     * 超时重试次数
+     */
+    public Ks3Client setRetryCount(int retryCount) {
+        if (retryCount < 0) throw new IllegalArgumentException("retryCount must > 0");
+        mRetryCount = retryCount;
+        return this;
+    }
+
+    /**
+     * 超时重试次数
+     */
+    public int getRetryCount() {
+        return mRetryCount;
+    }
+
+    /**
+     * 全局的缓存模式
+     */
+    public Ks3Client setCacheMode(CacheMode cacheMode) {
+        mCacheMode = cacheMode;
+        return this;
+    }
+
+    /**
+     * 获取全局的缓存模式
+     */
+    public CacheMode getCacheMode() {
+        return mCacheMode;
+    }
+
+    /**
+     * 全局的缓存过期时间
+     */
+    public Ks3Client setCacheTime(long cacheTime) {
+        if (cacheTime <= -1) cacheTime = CacheEntity.CACHE_NEVER_EXPIRE;
+        mCacheTime = cacheTime;
+        return this;
+    }
+
+    /**
+     * 获取全局的缓存过期时间
+     */
+    public long getCacheTime() {
+        return mCacheTime;
+    }
+
+    /**
+     * 获取全局公共请求参数
+     */
+    public HttpParams getCommonParams() {
+        return mCommonParams;
+    }
+
+    /**
+     * 添加全局公共请求参数
+     */
+    public Ks3Client addCommonParams(HttpParams commonParams) {
+        if (mCommonParams == null) mCommonParams = new HttpParams();
+        mCommonParams.put(commonParams);
+        return this;
+    }
+
+    /**
+     * 获取全局公共请求头
+     */
+    public HttpHeaders getCommonHeaders() {
+        return mCommonHeaders;
+    }
+
+    /**
+     * 添加全局公共请求参数
+     */
+    public Ks3Client addCommonHeaders(HttpHeaders commonHeaders) {
+        if (mCommonHeaders == null) mCommonHeaders = new HttpHeaders();
+        mCommonHeaders.put(commonHeaders);
+        return this;
+    }
+
+    /**
+     * 根据Tag取消请求
+     */
+    public void cancelTag(Object tag) {
+        if (tag == null) return;
+        for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
+        for (Call call : getOkHttpClient().dispatcher().runningCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
+    }
+
+    /**
+     * 根据Tag取消请求
+     */
+    public static void cancelTag(OkHttpClient client, Object tag) {
+        if (client == null || tag == null) return;
+        for (Call call : client.dispatcher().queuedCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
+        for (Call call : client.dispatcher().runningCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
+    }
+
+    /**
+     * 取消所有请求请求
+     */
+    public void cancelAll() {
+        for (Call call : getOkHttpClient().dispatcher().queuedCalls()) {
+            call.cancel();
+        }
+        for (Call call : getOkHttpClient().dispatcher().runningCalls()) {
+            call.cancel();
+        }
+    }
+
+    /**
+     * 取消所有请求请求
+     */
+    public static void cancelAll(OkHttpClient client) {
+        if (client == null) return;
+        for (Call call : client.dispatcher().queuedCalls()) {
+            call.cancel();
+        }
+        for (Call call : client.dispatcher().runningCalls()) {
+            call.cancel();
+        }
+    }
+
+    private void initOkGo(Application application) {
+        //---------这里给出的是示例代码,告诉你可以这么传,实际使用的时候,根据需要传,不需要就不传-------------//
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("commonHeaderKey1", "commonHeaderValue1");    //header不支持中文，不允许有特殊字符
+        headers.put("commonHeaderKey2", "commonHeaderValue2");
+        HttpParams params = new HttpParams();
+        params.put("commonParamsKey1", "commonParamsValue1");     //param支持中文,直接传,不要自己编码
+        params.put("commonParamsKey2", "这里支持中文参数");
+        //----------------------------------------------------------------------------------------//
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        //log相关
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
+        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);        //log打印级别，决定了log显示的详细程度
+        loggingInterceptor.setColorLevel(Level.INFO);                               //log颜色级别，决定了log在控制台显示的颜色
+        builder.addInterceptor(loggingInterceptor);                                 //添加OkGo默认debug日志
+        //第三方的开源库，使用通知显示当前请求的log，不过在做文件下载的时候，这个库好像有问题，对文件判断不准确
+        //builder.addInterceptor(new ChuckInterceptor(this));
+
+        //超时时间设置，默认60秒
+        builder.readTimeout(OkGo.DEFAULT_MILLISECONDS, TimeUnit.MILLISECONDS);      //全局的读取超时时间
+        builder.writeTimeout(OkGo.DEFAULT_MILLISECONDS, TimeUnit.MILLISECONDS);     //全局的写入超时时间
+        builder.connectTimeout(OkGo.DEFAULT_MILLISECONDS, TimeUnit.MILLISECONDS);   //全局的连接超时时间
+
+        //自动管理cookie（或者叫session的保持），以下几种任选其一就行
+        //builder.cookieJar(new CookieJarImpl(new SPCookieStore(this)));            //使用sp保持cookie，如果cookie不过期，则一直有效
+        builder.cookieJar(new CookieJarImpl(new DBCookieStore(application)));              //使用数据库保持cookie，如果cookie不过期，则一直有效
+        //builder.cookieJar(new CookieJarImpl(new MemoryCookieStore()));            //使用内存保持cookie，app退出后，cookie消失
+
+        //https相关设置，以下几种方案根据需要自己设置
+        //方法一：信任所有证书,不安全有风险
+        HttpsUtils.SSLParams sslParams1 = HttpsUtils.getSslSocketFactory();
+        //方法二：自定义信任规则，校验服务端证书
+        HttpsUtils.SSLParams sslParams2 = HttpsUtils.getSslSocketFactory(new SafeTrustManager());
+        //方法三：使用预埋证书，校验服务端证书（自签名证书）
+        //HttpsUtils.SSLParams sslParams3 = HttpsUtils.getSslSocketFactory(getAssets().open("srca.cer"));
+        //方法四：使用bks证书和密码管理客户端证书（双向认证），使用预埋证书，校验服务端证书（自签名证书）
+        //HttpsUtils.SSLParams sslParams4 = HttpsUtils.getSslSocketFactory(getAssets().open("xxx.bks"), "123456", getAssets().open("yyy.cer"));
+        builder.sslSocketFactory(sslParams1.sSLSocketFactory, sslParams1.trustManager);
+        //配置https的域名匹配规则，详细看demo的初始化介绍，不需要就不要加入，使用不当会导致https握手失败
+        builder.hostnameVerifier(new SafeHostnameVerifier());
+
+        // 其他统一的配置
+        // 详细说明看GitHub文档：https://github.com/jeasonlzy/
+        OkGo.getInstance().init(application)                           //必须调用初始化
+                .setOkHttpClient(builder.build())               //建议设置OkHttpClient，不设置会使用默认的
+                .setCacheMode(CacheMode.NO_CACHE)               //全局统一缓存模式，默认不使用缓存，可以不传
+                .setCacheTime(CacheEntity.CACHE_NEVER_EXPIRE)   //全局统一缓存时间，默认永不过期，可以不传
+                .setRetryCount(3)                               //全局统一超时重连次数，默认为三次，那么最差的情况会请求4次(一次原始请求，三次重连请求)，不需要可以设置为0
+                .addCommonHeaders(headers)                      //全局公共头
+                .addCommonParams(params);                       //全局公共参数
+
+    }
+
+    /**
+     * 这里只是我谁便写的认证规则，具体每个业务是否需要验证，以及验证规则是什么，请与服务端或者leader确定
+     * 这里只是我谁便写的认证规则，具体每个业务是否需要验证，以及验证规则是什么，请与服务端或者leader确定
+     * 这里只是我谁便写的认证规则，具体每个业务是否需要验证，以及验证规则是什么，请与服务端或者leader确定
+     * 重要的事情说三遍，以下代码不要直接使用
+     */
+    private class SafeTrustManager implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            try {
+                for (X509Certificate certificate : chain) {
+                    certificate.checkValidity(); //检查证书是否过期，签名是否通过等
+                }
+            } catch (Exception e) {
+                throw new CertificateException(e);
+            }
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    }
+
+    /**
+     * 这里只是我谁便写的认证规则，具体每个业务是否需要验证，以及验证规则是什么，请与服务端或者leader确定
+     * 重要的事情说三遍，以下代码不要直接使用
+     */
+    private static class SafeHostnameVerifier implements HostnameVerifier {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            //验证主机名是否匹配
+            return true;
+        }
     }
 }

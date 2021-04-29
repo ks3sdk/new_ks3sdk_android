@@ -51,8 +51,8 @@ dependencies {
     api 'com.loopj.android:android-async-http:1.4.9'
     api 'com.google.code.gson:gson:2.8.5'
     api 'joda-time:joda-time:2.9.9'
-    api 'com.squareup.okio:okio:1.13.0'
-    api 'com.squareup.okhttp3:okhttp:3.9.0'
+//必须使用
+    api 'com.lzy.net:okgo:3.0.4'
 }
 
 def siteUrl = 'https://github.com/ks3sdk/ks3-android-sdk' // 项目的主页

@@ -20,7 +20,7 @@ public abstract class PutBucketACLResponseHandler extends Ks3HttpResponceHandler
 		Ks3Error error = new Ks3Error(statesCode, response, throwable);
 		this.onFailure(statesCode, error,responceHeaders, response==null?"":new String(response), throwable);
 	}
-	
+
 	@Override
 	public final void onProgress(long bytesWritten, long totalSize) {}
 
@@ -30,7 +30,7 @@ public abstract class PutBucketACLResponseHandler extends Ks3HttpResponceHandler
 
 	@Override
 	public final void onFinish() {}
-	
+
 	@Override
 	public final void onCancel() {}
 }

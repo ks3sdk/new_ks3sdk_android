@@ -76,15 +76,21 @@ import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
-import com.ksyun.ks3.services.request.object.PostObjectRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchResult;
 import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
-
-import org.junit.Test;
+import com.lzy.okgo.OkGo;
+import com.lzy.okgo.cache.CacheEntity;
+import com.lzy.okgo.cache.CacheMode;
+import com.lzy.okgo.cookie.CookieJarImpl;
+import com.lzy.okgo.cookie.store.DBCookieStore;
+import com.lzy.okgo.https.HttpsUtils;
+import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
+import com.lzy.okgo.model.HttpHeaders;
+import com.lzy.okgo.model.HttpParams;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -94,14 +100,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.X509TrustManager;
 
 import cz.msebera.android.httpclient.Header;
+import okhttp3.OkHttpClient;
 
 import static com.ks3.demo.main.Constants.*;
 
@@ -155,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dummy);
+        initOkGo();
         setUpKs3Client();
         setUpUserInterface();
         PermissionUtils.permission(PermissionConstants.STORAGE).callback(new PermissionUtils.SimpleCallback() {
@@ -169,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }).request();
     }
-
     public static void main(String[] args) {
 
 //       Ks3Client  client = Ks3ClientFactory.getDefaultClient(this);

@@ -30,6 +30,7 @@ public class StringUtils {
 		}
 		return buffer.toString();
 	}
+
 	public static String join(int[] strings, String spliter) {
 		int i = 0;
 		StringBuffer buffer = new StringBuffer();
@@ -43,6 +44,7 @@ public class StringUtils {
 		}
 		return buffer.toString();
 	}
+
 	public static String join(byte[] strings, String spliter) {
 		int i = 0;
 		StringBuffer buffer = new StringBuffer();
@@ -56,6 +58,7 @@ public class StringUtils {
 		}
 		return buffer.toString();
 	}
+
 	public static String join(List<String> strings, String spliter) {
 		return join(strings.toArray(), spliter);
 	}
@@ -114,32 +117,32 @@ public class StringUtils {
 		}
 		return bname;
 	}
-	
+
 	public static String object2string(Object obj) {
-		return object2string(0, obj,null);
+		return object2string(0, obj, null);
 	}
-	
-	private static List<Class<?>> clazzs = Arrays.asList(new Class<?>[] {
+
+	private static List<Class<?>> clazzs = Arrays.asList(new Class<?>[]{
 			String.class, Boolean.class, Integer.class, Long.class,
 			Double.class, Float.class, Short.class, Byte.class,
-			Collection.class ,Map.class,HashMap.class,ArrayList.class,HashSet.class,java.util.Date.class});
-	
-	private static String object2string(int index, Object obj,Field fieldF) {
+			Collection.class, Map.class, HashMap.class, ArrayList.class, HashSet.class, java.util.Date.class});
+
+	private static String object2string(int index, Object obj, Field fieldF) {
 		StringBuffer value = new StringBuffer();
 		StringBuffer prefixSb = new StringBuffer();
-		for (int i = 0; i < index-1; i++) {
+		for (int i = 0; i < index - 1; i++) {
 			prefixSb.append("       ");
 		}
 		String prefix = prefixSb.toString();
-		if(fieldF!=null)
-		    value.append("\n"+prefix+fieldF.getName()+"="+obj.getClass() + "\n");
+		if (fieldF != null)
+			value.append("\n" + prefix + fieldF.getName() + "=" + obj.getClass() + "\n");
 		else
-		    value.append("\n"+prefix+obj.getClass() + "\n");
-		if(index!=0)
-	    	prefixSb.append("       ");
+			value.append("\n" + prefix + obj.getClass() + "\n");
+		if (index != 0)
+			prefixSb.append("       ");
 		prefix = prefixSb.toString();
 		Field[] fields = obj.getClass().getDeclaredFields();
-		Map<Field,Object> valuesToAdd = new HashMap<Field,Object>();
+		Map<Field, Object> valuesToAdd = new HashMap<Field, Object>();
 		for (int i = 0; i < fields.length; i++) {
 			Field field = fields[i];
 			field.setAccessible(true);
@@ -156,50 +159,51 @@ public class StringUtils {
 			if (fieldValue != null) {
 				if (clazzs.contains(fieldValue.getClass())) {
 
-					value.append(prefix+field.getName() + "=" + fieldValue.toString()
+					value.append(prefix + field.getName() + "=" + fieldValue.toString()
 							+ "\n");
-				} else if(fieldValue.getClass().isEnum()){
-					value.append(prefix+field.getName() + "=" + fieldValue.toString()
+				} else if (fieldValue.getClass().isEnum()) {
+					value.append(prefix + field.getName() + "=" + fieldValue.toString()
 							+ "\n");
+				} else {
+					valuesToAdd.put(field, fieldValue);
 				}
-				else {
-					valuesToAdd.put(field,fieldValue);
-				}
-			} else if(fieldValue==null){
-				value.append(prefix+field.getName() + "=null" + "\n");
+			} else if (fieldValue == null) {
+				value.append(prefix + field.getName() + "=null" + "\n");
 			}
 		}
-		for(Entry<Field,Object> obj1:valuesToAdd.entrySet()){
-		    value.append(object2string(index + 1, obj1.getValue(),obj1.getKey()));
+		for (Entry<Field, Object> obj1 : valuesToAdd.entrySet()) {
+			value.append(object2string(index + 1, obj1.getValue(), obj1.getKey()));
 		}
 		return value.toString();
 	}
-	
+
 	public static byte[] getBytesUnchecked(String string, String charsetName) {
-        if (string == null) {
-            return null;
-        }
-        try {
-            return string.getBytes(charsetName);
-        } catch (UnsupportedEncodingException e) {
-            throw StringUtils.newIllegalStateException(charsetName, e);
-        }
-    }
-	
+		if (string == null) {
+			return null;
+		}
+		try {
+			return string.getBytes(charsetName);
+		} catch (UnsupportedEncodingException e) {
+			throw StringUtils.newIllegalStateException(charsetName, e);
+		}
+	}
+
 	private static IllegalStateException newIllegalStateException(String charsetName, UnsupportedEncodingException e) {
-        return new IllegalStateException(charsetName + ": " + e);
-    }
+		return new IllegalStateException(charsetName + ": " + e);
+	}
 
 
 	/**
 	 * 是否是正整数
+	 *
 	 * @param string
 	 * @return
 	 */
-	public static boolean isNumeric(String string){
+	public static boolean isNumeric(String string) {
 		Pattern pattern = Pattern.compile("[0-9]*");
 		return pattern.matcher(string).matches();
 	}
+
 	public static String object2json(Object obj) {
 		return object2json(obj, false);
 	}
@@ -235,9 +239,9 @@ public class StringUtils {
 			}
 			buffer.append("]");
 		} else {
-			if(obj instanceof Number||obj instanceof Boolean){
+			if (obj instanceof Number || obj instanceof Boolean) {
 				buffer.append(obj.toString());
-			}else{
+			} else {
 				if (escape)
 					buffer.append("\"" + escape(obj.toString(), true) + "\"");
 				else
@@ -247,8 +251,9 @@ public class StringUtils {
 		return buffer.toString();
 	}
 
-	private static List<Character> need = Arrays.asList(new Character[] { '\\',
-			'\"', '$', '\'' });
+	private static List<Character> need = Arrays.asList(new Character[]{'\\',
+			'\"', '$', '\''});
+
 	private static String escape(Object obj, boolean dollar) {
 		String s = obj.toString();
 		byte[] chars = s.getBytes();
@@ -280,5 +285,26 @@ public class StringUtils {
 		if (matcher.find())
 			return true;
 		return false;
+	}
+
+	/**
+	 * 判断字符串是否为空
+	 *
+	 * @param str
+	 * @return
+	 */
+	public static boolean strIsNull(String str) {
+		return str == null || str.isEmpty() || str.equals("null");
+	}
+
+	/**
+	 * 判断字符串是否为空
+	 *
+	 * @param str
+	 * @return
+	 */
+	public static boolean strIsNull(CharSequence str) {
+		return str == null || str.length() == 0 || str.equals("null");
+
 	}
 }

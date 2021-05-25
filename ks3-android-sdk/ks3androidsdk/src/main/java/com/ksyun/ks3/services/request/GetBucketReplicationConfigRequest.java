@@ -2,7 +2,6 @@ package com.ksyun.ks3.services.request;
 
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
-import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 
 public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
@@ -14,9 +13,10 @@ public class GetBucketReplicationConfigRequest extends Ks3HttpRequest {
     }
 
     @Override
-    protected void validateParams() throws Ks3ClientException {
+    protected String validateParams() throws Ks3ClientException {
         if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
             throw new Ks3ClientException("bucket name is not correct");
+        return null;
     }
 
     public GetBucketReplicationConfigRequest(String bucketName) {

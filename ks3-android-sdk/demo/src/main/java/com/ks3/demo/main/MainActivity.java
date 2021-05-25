@@ -3,6 +3,7 @@ package com.ks3.demo.main;
 import android.app.AlertDialog.Builder;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,6 +22,7 @@ import com.ks3.demo.main.BucketObjectInpuDialog.OnBucketObjectDialogListener;
 import com.ksyun.ks3.exception.Ks3Error;
 import com.ksyun.ks3.model.Bucket;
 import com.ksyun.ks3.model.Ks3ObjectSummary;
+import com.ksyun.ks3.model.ObjecVersiontListing;
 import com.ksyun.ks3.model.ObjectListing;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.Owner;
@@ -30,6 +32,7 @@ import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.result.BucketQuota;
 import com.ksyun.ks3.model.result.CopyResult;
+import com.ksyun.ks3.model.result.GetObjectResult;
 import com.ksyun.ks3.model.result.HeadObjectResult;
 import com.ksyun.ks3.model.result.ListPartsResult;
 import com.ksyun.ks3.model.result.PutAdpResult;
@@ -47,13 +50,16 @@ import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketPolicyResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketQuotaResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
+import com.ksyun.ks3.services.handler.GetBucketVersioningHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
+import com.ksyun.ks3.services.handler.GetObjectResponseHandler;
 import com.ksyun.ks3.services.handler.GetObjectTaggingResponseHandler;
 import com.ksyun.ks3.services.handler.HeadBucketResponseHandler;
 import com.ksyun.ks3.services.handler.HeadObjectResponseHandler;
 import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
+import com.ksyun.ks3.services.handler.ListObjectsVersionResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
@@ -68,6 +74,8 @@ import com.ksyun.ks3.services.request.DeleteObjectRequest;
 import com.ksyun.ks3.services.request.GetBucketPolicyRequest;
 import com.ksyun.ks3.services.request.GetBucketQuotaRequest;
 import com.ksyun.ks3.services.request.GetBucketReplicationConfigRequest;
+import com.ksyun.ks3.services.request.GetObjectRequest;
+import com.ksyun.ks3.services.request.ListObjectVersionsRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
 import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
 import com.ksyun.ks3.services.request.PutBuckeQuotaRequest;
@@ -76,15 +84,15 @@ import com.ksyun.ks3.services.request.PutBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.PutObjectACLRequest;
 import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.adp.PutAdpRequest;
-import com.ksyun.ks3.services.request.object.PostObjectRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
 import com.ksyun.ks3.services.request.object.PutObjectFetchResult;
 import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
-
-import org.junit.Test;
+import com.ksyun.ks3.services.request.version.BucketVersioningConfiguration;
+import com.ksyun.ks3.services.request.version.GetBucketVersioningRequest;
+import com.ksyun.ks3.services.request.version.PutBucketVersioningRequest;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -104,6 +112,7 @@ import java.util.Map;
 import cz.msebera.android.httpclient.Header;
 
 import static com.ks3.demo.main.Constants.*;
+import static com.ksyun.ks3.services.request.version.BucketVersioningConfiguration.ENABLED;
 
 /**
  * 包含一系列资源管理操作Api使用示例
@@ -133,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int PUT_OBJECT_TAG = 22;
     public static final int FETCH_OBJECT = 23;
     public static final int POST_OBJECT = 24;
+    public static final int VERSION = 25;
     // Upload
     public static final int UPLOAD = 13;
     // Download
@@ -274,7 +284,9 @@ public class MainActivity extends AppCompatActivity {
                     case POST_OBJECT:
                         postObject();
                         break;
-
+                    case VERSION:
+                        testVersion();
+                        break;
                     default:
                         break;
                 }
@@ -1608,7 +1620,7 @@ public class MainActivity extends AppCompatActivity {
         postData.put("key", "20150115/中文/${filename}");
         List<String> unknowValueField = new ArrayList<String>();
         unknowValueField.add("name");
-        PostObjectFormFields fields = client.getObjectFormFields(SRC_BUCKETNAME, file.getName(), postData, unknowValueField);
+        PostObjectFormFields fields = client.getObjectFormFields(SRC_BUCKETNAME, file.getName(), postData, (Map<String, String>) unknowValueField);
         fields.getKssAccessKeyId();
         fields.getPolicy();
         fields.getSignature();
@@ -1755,6 +1767,121 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
                 System.out.println("fail putObjectFetchResponse is " + new String(response));
             }
+        });
+    }
+
+
+    /**
+     * putBucketVersion
+     */
+    public void testVersion() {
+
+        // getBucketVersion();
+        // putBucketVersion();
+        //listObjectVersion();
+        getObjectVersion();
+    }
+
+    /**
+     * putBucketVersion
+     */
+    public void putBucketVersion() {
+
+     //  getBucketVersion();
+        BucketVersioningConfiguration bucketVersioningConfiguration = new BucketVersioningConfiguration();
+        bucketVersioningConfiguration.setStatus(ENABLED);
+        PutBucketVersioningRequest putBucketVersioningRequest = new PutBucketVersioningRequest(bucketVersioningConfiguration);
+        putBucketVersioningRequest.setBucketname(SRC_BUCKETNAME);
+        client.putBucketVersion(putBucketVersioningRequest, new Ks3HttpResponceHandler() {
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
+                System.out.println("success putBucketVersionResponse");
+            }
+            @Override
+            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
+                System.out.println("fail putBucketVersionResponse is " + response);
+            }
+        });
+    }
+    /**
+     * getBucketVersion
+     */
+    public void getBucketVersion() {
+
+        GetBucketVersioningRequest getBucketVersioningRequest = new GetBucketVersioningRequest();
+        getBucketVersioningRequest.setBucketname(SRC_BUCKETNAME);
+        client.getBucketVersion(getBucketVersioningRequest, new GetBucketVersioningHandler() {
+
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                System.out.println("fail getBucketVersionResponse is " + response);
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, BucketVersioningConfiguration versioningConfiguration) {
+                System.out.println("success getBucketVersionResponse is " + versioningConfiguration.toString());
+            }
+        });
+    }
+
+    /**
+     * listObjectVersion
+     */
+    public void listObjectVersion() {
+
+        ListObjectVersionsRequest listObjectVersionsRequest = new ListObjectVersionsRequest(SRC_BUCKETNAME);
+        client.listObjectVersions(listObjectVersionsRequest, new ListObjectsVersionResponseHandler() {
+
+            @Override
+            public void onFailure(int statesCode, Ks3Error error, Header[] responceHeaders, String response, Throwable paramThrowable) {
+                System.out.println("fail getBucketVersionResponse is " + response);
+            }
+
+            @Override
+            public void onSuccess(int statesCode, Header[] responceHeaders, ObjecVersiontListing objectListing) {
+                System.out.println("success getObjectSummaries size is " + objectListing.getObjectSummaries().size());
+            }
+        });
+    }
+
+    /**
+     * getobject-version
+     */
+    public void getObjectVersion() {
+
+        GetObjectRequest getObjectRequest = new GetObjectRequest(SRC_BUCKETNAME,SRC_OBJECTKEY,"Kvi7y10K0T8gMdolCfUjy9IZNSFdjYnQAz/n6jewSk4=");
+        client.getObject(getObjectRequest, new GetObjectResponseHandler(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),SRC_OBJECTKEY),
+                SRC_BUCKETNAME, SRC_OBJECTKEY) {
+            @Override
+            public void onTaskProgress(double progress) {
+
+            }
+
+            @Override
+            public void onTaskStart() {
+
+            }
+
+            @Override
+            public void onTaskFinish() {
+
+            }
+
+            @Override
+            public void onTaskCancel() {
+
+            }
+
+            @Override
+            public void onTaskSuccess(int paramInt, Header[] paramArrayOfHeader, GetObjectResult getObjectResult) {
+                System.out.println("OK getObjectResult is " + getObjectResult.getObject().getContentETag());
+            }
+
+            @Override
+            public void onTaskFailure(int paramInt, Ks3Error error, Header[] paramArrayOfHeader, Throwable paramThrowable, File paramFile) {
+                System.out.println("fail getObjectResult is " + error);
+            }
+
         });
     }
 }

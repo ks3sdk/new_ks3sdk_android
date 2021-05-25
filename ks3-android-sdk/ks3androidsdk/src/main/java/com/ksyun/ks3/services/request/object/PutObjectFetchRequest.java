@@ -169,7 +169,7 @@ public class PutObjectFetchRequest extends Ks3HttpObjectRequest{
     }
 
     @Override
-    protected void validateParams() throws Ks3ClientException {
+    protected String validateParams() throws Ks3ClientException {
         if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
             throw new Ks3ClientException("bucket name is not correct");
         if (StringUtils.isBlank(this.getObjectkey()))
@@ -192,6 +192,7 @@ public class PutObjectFetchRequest extends Ks3HttpObjectRequest{
                         "redirectLocation should start with / http:// or https://");
         }
 
+        return null;
     }
 
     public ObjectMetadata getObjectMeta() {

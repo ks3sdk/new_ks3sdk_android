@@ -86,7 +86,7 @@ public class UploadPartRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		
@@ -123,7 +123,8 @@ public class UploadPartRequest extends Ks3HttpRequest {
 					+ ") should be larger than" + Constants.minPartSize);
 		}
 
-	}
+        return null;
+    }
 
 	public ObjectMetadata getObjectMeta() {
 		return objectMeta;

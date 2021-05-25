@@ -21,9 +21,10 @@ public class HeadBucketRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
-	}
+        return null;
+    }
 
 }

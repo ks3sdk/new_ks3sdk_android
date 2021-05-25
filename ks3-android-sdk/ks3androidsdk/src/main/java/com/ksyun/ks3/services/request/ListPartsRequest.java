@@ -48,7 +48,7 @@ public class ListPartsRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (StringUtils.isBlank(this.getObjectkey()))
@@ -59,7 +59,8 @@ public class ListPartsRequest extends Ks3HttpRequest {
 				&& (this.maxParts > 1000 || this.maxParts < 1))
 			throw new Ks3ClientException(
 					"maxParts should between 1 and 1000");
-	}
+        return null;
+    }
 
 	public String getUploadId() {
 		return uploadId;

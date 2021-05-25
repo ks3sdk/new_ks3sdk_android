@@ -33,6 +33,18 @@ public class HeadObjectResult {
 		this.lastmodified = lastmodified;
 	}
 
+	/**
+	 * 版本号
+	 */
+	private String versionId;
+
+	public String getVersionId() {
+		return versionId;
+	}
+
+	public void setVersionId(String versionId) {
+		this.versionId = versionId;
+	}
 	@Override
 	public String toString() {
 		return "HeadObjectResult[ETag=" + this.ETag + ";lastmodified="

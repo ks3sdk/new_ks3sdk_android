@@ -42,7 +42,7 @@ public class PutBuckePolicyRequest extends Ks3HttpRequest {
 
     }
 
-    public void validateParams() {
+    public String validateParams() {
 
         if (StringUtils.isBlank(this.getBucketname())) {
             throw new Ks3ClientException("bucket name is not correct");
@@ -51,6 +51,7 @@ public class PutBuckePolicyRequest extends Ks3HttpRequest {
             throw new Ks3ClientException("policy is not correct");
         }
 
+        return null;
     }
 
 }

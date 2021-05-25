@@ -55,7 +55,7 @@ public class PutAdpRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	public void validateParams() throws IllegalArgumentException {
+	public String validateParams() throws IllegalArgumentException {
 		if(StringUtils.isBlank(this.getBucketname()))
 			throw new Ks3ClientException("bucketname");
 		if(StringUtils.isBlank(this.getObjectkey()))
@@ -71,7 +71,8 @@ public class PutAdpRequest extends Ks3HttpRequest {
 		}
 		if(StringUtils.isBlank(notifyURL))
 			throw new Ks3ClientException("notifyURL");
-	}
+        return null;
+    }
 	public List<Adp> getAdps() {
 		return adps;
 	}

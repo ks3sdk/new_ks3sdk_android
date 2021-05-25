@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.between;
 import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.notCorrect;
 
-public class PutObjectTaggingRequest extends Ks3HttpRequest implements
+public class PutObjectTaggingRequest extends Ks3HttpObjectRequest implements
         MD5CalculateAble {
     private static final long serialVersionUID = 8398633676278496457L;
 
@@ -48,6 +48,7 @@ public class PutObjectTaggingRequest extends Ks3HttpRequest implements
 
         this.setHttpMethod(HttpMethod.PUT);
         this.addParams("tagging", "");
+        super.setupRequest();
         XmlWriter writer = new XmlWriter();
         writer.start("Tagging");
         writer.start("TagSet");
@@ -68,7 +69,7 @@ public class PutObjectTaggingRequest extends Ks3HttpRequest implements
         this.setRequestBody(new ByteArrayInputStream(xml.getBytes()));
     }
 
-    public void validateParams() throws IllegalArgumentException {
+    public String validateParams() throws IllegalArgumentException {
 
         if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
             throw new Ks3ClientException("bucket name is not correct");
@@ -107,6 +108,7 @@ public class PutObjectTaggingRequest extends Ks3HttpRequest implements
                 }
             }
         }
+        return null;
     }
 
     public String getMd5() {

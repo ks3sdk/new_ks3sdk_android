@@ -32,6 +32,7 @@
         <item>Put Tag</item>
         <item>Fetch Object</item>
         <item>Post Object</item>
+        <item>Object Version</item>
     </string-array>
     <string name="title_activity_multi_upload">MultiUploadActivity</string>
     <string name="large_text">

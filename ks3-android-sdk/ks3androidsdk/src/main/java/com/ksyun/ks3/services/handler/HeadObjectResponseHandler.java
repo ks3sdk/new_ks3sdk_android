@@ -7,6 +7,7 @@ import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.ObjectMetadata.Meta;
 import com.ksyun.ks3.model.result.HeadObjectResult;
+import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.DateUtil;
 import com.ksyun.ks3.util.StringUtils;
 
@@ -50,6 +51,9 @@ public abstract class HeadObjectResponseHandler extends Ks3HttpResponceHandler {
 				Header h = responceHeaders[i];
 				if (HttpHeaders.ETag.toString().equalsIgnoreCase(h.getName())) {
 					result.setETag(h.getValue());
+				}
+				if (h.getName().equals(Constants.versionIdHeader)) {
+					result.setVersionId(h.getValue());
 				}
 				if(HttpHeaders.LastModified.toString().equalsIgnoreCase(h.getName())){
 					String dateStr = h.getValue();

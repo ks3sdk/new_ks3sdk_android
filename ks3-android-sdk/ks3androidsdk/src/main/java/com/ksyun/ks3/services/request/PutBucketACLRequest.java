@@ -60,7 +60,7 @@ public class PutBucketACLRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
@@ -78,7 +78,8 @@ public class PutBucketACLRequest extends Ks3HttpRequest {
 			}
 		}
 
-	}
+        return null;
+    }
 
 	public PutBucketACLRequest(String bucketName) {
 		super.setBucketname(bucketName);

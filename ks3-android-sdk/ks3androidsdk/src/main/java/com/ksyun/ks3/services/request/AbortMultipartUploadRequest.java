@@ -23,14 +23,15 @@ public class AbortMultipartUploadRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (StringUtils.isBlank(this.getObjectkey()))
 			throw new Ks3ClientException("object key can not be null");
 		if (StringUtils.isBlank(this.uploadId))
 			throw new Ks3ClientException("uploadId can not be null");
-	}
+        return null;
+    }
 
 	public String getUploadId() {
 		return uploadId;

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import android.widget.Toast;
-
 import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
@@ -93,12 +91,13 @@ public class InitiateMultipartUploadRequest extends Ks3HttpObjectRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (StringUtils.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (StringUtils.isBlank(this.getObjectkey()))
 			throw new Ks3ClientException("object key can not be null");
-	}
+        return null;
+    }
 
 	public ObjectMetadata getObjectMeta() {
 		return objectMeta;

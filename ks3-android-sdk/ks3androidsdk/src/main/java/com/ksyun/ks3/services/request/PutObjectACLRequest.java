@@ -13,9 +13,10 @@ import com.ksyun.ks3.model.acl.AccessControlList;
 import com.ksyun.ks3.model.acl.CannedAccessControlList;
 import com.ksyun.ks3.model.acl.Grant;
 import com.ksyun.ks3.model.acl.Permission;
+import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
 import com.ksyun.ks3.util.StringUtils;
 
-public class PutObjectACLRequest extends Ks3HttpRequest {
+public class PutObjectACLRequest extends Ks3HttpObjectRequest {
 	private static final long serialVersionUID = -3435643015981671237L;
 	private AccessControlList accessControlList;
 	private CannedAccessControlList cannedAcl;
@@ -24,6 +25,7 @@ public class PutObjectACLRequest extends Ks3HttpRequest {
 	protected void setupRequest() throws Ks3ClientException {
 		this.setHttpMethod(HttpMethod.PUT);
 		this.addParams("acl", "");
+		super.setupRequest();
 		if (getCannedAcl() != null) {
 			this.addHeader(HttpHeaders.CannedAcl, getCannedAcl().toString());
 		}
@@ -60,7 +62,7 @@ public class PutObjectACLRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (StringUtils.isBlank(this.getObjectkey())) {
@@ -81,6 +83,7 @@ public class PutObjectACLRequest extends Ks3HttpRequest {
 
 		}
 
+		return null;
 	}
 
 	public CannedAccessControlList getCannedAcl() {
@@ -110,7 +113,10 @@ public class PutObjectACLRequest extends Ks3HttpRequest {
 		setObjectkey(objectName);
 		this.setAccessControlList(accessControlList);
 	}
-
+	public PutObjectACLRequest(String bucketName,String objectName,String versionId,CannedAccessControlList cannedAcl){
+		this(bucketName,objectName,versionId);
+		this.setCannedAcl(cannedAcl);
+	}
 	public PutObjectACLRequest(String bucketName, String objectName,
 			CannedAccessControlList cannedAcl) {
 		setBucketname(bucketName);
@@ -125,6 +131,16 @@ public class PutObjectACLRequest extends Ks3HttpRequest {
 		setObjectkey(objectName);
 		this.setAccessControlList(accessControlList);
 		this.setCannedAcl(cannedAcl);
+	}
+	public PutObjectACLRequest(String bucketName,String objectName,String versionId,AccessControlList accessControlList,CannedAccessControlList cannedAcl){
+		this(bucketName,objectName,versionId);
+		this.setAccessControlList(accessControlList);
+		this.setCannedAcl(cannedAcl);
+	}
+	public PutObjectACLRequest(String bucketName,String objectName, String versionId) {
+		setBucketname(bucketName);
+		setObjectkey(objectName);
+		setVersionId(versionId);
 	}
 
 }

@@ -82,12 +82,13 @@ public class ListObjectsRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (this.maxKeys != null && (this.maxKeys > 1000 || this.maxKeys < 1))
 			throw new Ks3ClientException(
 					"maxKeys should between 1 and 1000");
+		return null;
 	}
 
 	public String getEncodingType() {

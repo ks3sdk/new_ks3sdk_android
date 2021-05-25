@@ -3,7 +3,6 @@ package com.ksyun.ks3.services.request.common;
 import com.ksyun.ks3.auth.ValidateUtil;
 import com.ksyun.ks3.exception.Ks3ClientException;
 import com.ksyun.ks3.model.HttpHeaders;
-import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTag;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
@@ -31,9 +30,22 @@ public class Ks3HttpObjectRequest extends Ks3HttpRequest {
 
     public Pattern TAG_PATTERN = Pattern.compile("^[\\w\\-+=.:/][\\w\\-+=.:/\\s]*(?<!\\s)$");
 
+    private String versionId;
+
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
+
     @Override
     protected void setupRequest() throws Ks3ClientException {
-
+        // 添加 versionId
+        if (!StringUtils.isBlank(versionId)) {
+            this.addParams("versionId", versionId);
+        }
     }
 
     protected void setTagHeader() {
@@ -60,7 +72,7 @@ public class Ks3HttpObjectRequest extends Ks3HttpRequest {
     }
 
     @Override
-    protected void validateParams() throws Ks3ClientException {
+    protected String validateParams() throws Ks3ClientException {
 
         if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
             throw new Ks3ClientException("bucket name is not correct");
@@ -99,5 +111,6 @@ public class Ks3HttpObjectRequest extends Ks3HttpRequest {
                 }
             }
         }
+        return null;
     }
 }

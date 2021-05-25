@@ -49,13 +49,14 @@ public class PutBuckeQuotaRequest extends Ks3HttpRequest {
 
     }
 
-    public void validateParams() {
+    public String validateParams() {
         if (StringUtils.isBlank(this.getBucketname())) {
             throw new Ks3ClientException("bucket name is not correct");
         }
         if (this.bucketQuota == null) {
             throw new Ks3ClientException("quota is not correct");
         }
+        return null;
     }
 
 }

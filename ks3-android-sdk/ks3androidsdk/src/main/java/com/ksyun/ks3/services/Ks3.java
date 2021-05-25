@@ -35,6 +35,7 @@ import com.ksyun.ks3.services.handler.InitiateMultipartUploadResponceHandler;
 import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
+import com.ksyun.ks3.services.handler.ListObjectsVersionResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
@@ -61,6 +62,7 @@ import com.ksyun.ks3.services.request.HeadObjectRequest;
 import com.ksyun.ks3.services.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.services.request.ListBucketsRequest;
+import com.ksyun.ks3.services.request.ListObjectVersionsRequest;
 import com.ksyun.ks3.services.request.ListObjectsRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutBuckePolicyRequest;
@@ -188,7 +190,8 @@ public abstract interface Ks3 {
 
     public void listObjects(String bucketname,
                             ListObjectsResponseHandler resultHandler);
-
+    public void listObjectVersions(ListObjectVersionsRequest request,
+                                   ListObjectsVersionResponseHandler resultHandler);
     public ObjectListing syncListObjects(String bucketname) throws Throwable;
 
     public void listObjects(String bucketname, String prefix,
@@ -205,7 +208,8 @@ public abstract interface Ks3 {
 
     public void deleteObject(String bucketname, String objectKey,
                              DeleteObjectRequestHandler handler);
-
+    public void deleteObject(String bucketname, String key, String versionId,
+                             DeleteObjectRequestHandler handler);
     public void syncDeleteObject(String bucketname, String objectKey)
             throws Throwable;
 
@@ -232,7 +236,8 @@ public abstract interface Ks3 {
 
     public void headObject(String bucketname, String objectkey,
                            HeadObjectResponseHandler resultHandler);
-
+    public void headObject(String bucketname, String objectkey, String versionId,
+                           HeadObjectResponseHandler resultHandler);
     public HeadObjectResult syncHeadObject(String bucketname, String objectkey)
             throws Throwable;
 

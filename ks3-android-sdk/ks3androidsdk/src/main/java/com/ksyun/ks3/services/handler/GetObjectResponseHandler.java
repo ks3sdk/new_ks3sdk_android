@@ -9,6 +9,7 @@ import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.ObjectMetadata;
 import com.ksyun.ks3.model.ObjectMetadata.Meta;
 import com.ksyun.ks3.model.result.GetObjectResult;
+import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.Md5Utils;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
@@ -107,6 +108,8 @@ public abstract class GetObjectResponseHandler extends
                     result.getObject().setRedirectLocation(value);
                 } else if (name.startsWith(ObjectMetadata.userMetaPrefix)) {
                     metaData.addOrEditUserMeta(headers[i].getName(), value);
+                }else if (name.equals(Constants.versionIdHeader)) {
+                    result.getObject().setVersionId(value);
                 } else {
                     if (name.equalsIgnoreCase(HttpHeaders.LastModified.toString())) {
 

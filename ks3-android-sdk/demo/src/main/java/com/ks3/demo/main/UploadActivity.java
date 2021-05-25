@@ -48,7 +48,6 @@ import com.ksyun.ks3.services.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.services.request.ListPartsRequest;
 import com.ksyun.ks3.services.request.PutObjectRequest;
 import com.ksyun.ks3.services.request.UploadPartRequest;
-import com.ksyun.ks3.services.request.object.PostObjectRequest;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 
 import org.junit.Test;
@@ -411,9 +410,9 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         // 根据指定的文件大小，选择用直接上传或者分块上传
         long length = item.file.length();
         if (item.file.length() >= 2)
-            postObject(bucketName, item);
+            doSingleUpload(bucketName, item);
         else
-            postObject(bucketName, item);
+            doMultipartUpload(bucketName, item);
     }
 
     //流形式上传
@@ -476,36 +475,6 @@ public class UploadActivity extends Activity implements OnItemClickListener {
         } catch (Exception e) {
 			System.out.println(e.getMessage());
         }
-    }
-    public void postObject(final String bucketName, final UploadFile item) {
-
-        final String srcObjectKey = "OnlineTest/sdk/demo/KS3SDKDemo.zip";
-        final File file = item.file;
-        Map<String,String> postData = new HashMap<String,String>();
-        postData.put("acl","public-read");
-        postData.put("key","20150115/中文/${filename}");
-        List<String> unknowValueField = new ArrayList<String>();
-        unknowValueField.add("name");
-        PostObjectFormFields  fields =  client.getObjectFormFields(SRC_BUCKETNAME,file.getName(),postData,unknowValueField);
-        fields.getKssAccessKeyId();
-        fields.getPolicy();
-        fields.getSignature();
-
-        PostObjectRequest postObjectRequest = new PostObjectRequest(SRC_BUCKETNAME, srcObjectKey, file,fields);
-        //表单上传需要这个auth 计算签名
-        postObjectRequest.auth = client.auth;
-
-        client.postObject(postObjectRequest, new Ks3HttpResponceHandler() {
-            @Override
-            public void onSuccess(int statesCode, Header[] responceHeaders, byte[] response) {
-                System.out.println("onSuccess postObject is " + new String(response));
-            }
-            @Override
-            public void onFailure(int statesCode, Header[] responceHeaders, byte[] response, Throwable throwable) {
-                System.out.println("onFailure postObject is " + new String(response));
-            }
-        });
-
     }
     // 上传文件
     private void doSingleUpload(final String bucketName, final UploadFile item) {

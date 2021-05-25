@@ -14,7 +14,18 @@ public class Ks3Object{
 	private ObjectMetadata objectMetadata;
 	private File file;
 	private String redirectLocation;
+	/**
+	 * 版本号
+	 */
+	private String versionId;
 
+	public String getVersionId() {
+		return versionId;
+	}
+
+	public void setVersionId(String versionId) {
+		this.versionId = versionId;
+	}
 	@Override
 	public String toString() {
 		return "Ks3Object[bucket=" + this.bucketName + ";key=" + this.key

@@ -11,11 +11,52 @@ public class Ks3ObjectSummary {
 	protected String storageClass;
 	protected Owner owner;
 
+
 	public String toString() {
 		return "Ks3ObjectSummary[bucket=" + this.bucketName + ";key="
 				+ this.key + ";eTag=" + this.eTag + ";size=" + this.size
 				+ ";lastModified=" + this.lastModified + ";storgeClass="
-				+ this.storageClass + ";owner=" + this.owner + "]";
+				+ this.storageClass + ";owner=" + this.owner
+				+ ";versionId=" + this.versionId
+				+ ";isLatest=" + this.isLatest
+				+ ";isDeleteMarker=" + this.isDeleteMarker
+				+ "]";
+	}
+	/**
+	 * 版本号
+	 */
+	protected String versionId;
+	/**
+	 * 是否是最新的
+	 */
+	protected boolean isLatest = true;
+	/**
+	 * 是否是 deleteMarker
+	 */
+	protected boolean isDeleteMarker;
+
+	public boolean isDeleteMarker() {
+		return isDeleteMarker;
+	}
+
+	public void setDeleteMarker(boolean deleteMarker) {
+		isDeleteMarker = deleteMarker;
+	}
+
+	public boolean isLatest() {
+		return isLatest;
+	}
+
+	public void setLatest(boolean latest) {
+		isLatest = latest;
+	}
+
+	public String getVersionId() {
+		return versionId;
+	}
+
+	public void setVersionId(String versionId) {
+		this.versionId = versionId;
 	}
 
 	public String getBucketName() {

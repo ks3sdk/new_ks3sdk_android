@@ -1,7 +1,6 @@
 package com.ksyun.ks3.services.request.adp;
 
 import com.ksyun.ks3.exception.Ks3ClientException;
-import com.ksyun.ks3.model.HttpHeaders;
 import com.ksyun.ks3.model.HttpMethod;
 import com.ksyun.ks3.services.request.Ks3HttpRequest;
 import com.ksyun.ks3.util.StringUtils;
@@ -27,10 +26,11 @@ public class GetAdpRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	public void validateParams() throws IllegalArgumentException {
+	public String validateParams() throws IllegalArgumentException {
 		if(StringUtils.isBlank(this.taskid))
 			throw new Ks3ClientException("taskid");
-	}
+        return null;
+    }
 	public String getTaskid() {
 		return taskid;
 	}

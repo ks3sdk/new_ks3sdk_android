@@ -41,6 +41,7 @@ import com.ksyun.ks3.services.handler.DeleteBucketResponceHandler;
 import com.ksyun.ks3.services.handler.DeleteObjectRequestHandler;
 import com.ksyun.ks3.services.handler.GetBucketACLResponceHandler;
 import com.ksyun.ks3.services.handler.GetBucketReplicationConfigResponceHandler;
+import com.ksyun.ks3.services.handler.GetBucketVersioningHandler;
 import com.ksyun.ks3.services.handler.GetObjectACLResponseHandler;
 import com.ksyun.ks3.services.handler.GetObjectResponseHandler;
 import com.ksyun.ks3.services.handler.GetObjectTaggingResponseHandler;
@@ -50,6 +51,7 @@ import com.ksyun.ks3.services.handler.InitiateMultipartUploadResponceHandler;
 import com.ksyun.ks3.services.handler.Ks3HttpResponceHandler;
 import com.ksyun.ks3.services.handler.ListBucketsResponceHandler;
 import com.ksyun.ks3.services.handler.ListObjectsResponseHandler;
+import com.ksyun.ks3.services.handler.ListObjectsVersionResponseHandler;
 import com.ksyun.ks3.services.handler.ListPartsResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketACLResponseHandler;
 import com.ksyun.ks3.services.handler.PutBucketReplicationResponceHandler;
@@ -65,6 +67,7 @@ import com.ksyun.ks3.services.request.DeleteBucketQuotaRequest;
 import com.ksyun.ks3.services.request.DeleteBucketReplicationConfigRequest;
 import com.ksyun.ks3.services.request.DeleteBucketRequest;
 import com.ksyun.ks3.services.request.DeleteObjectRequest;
+import com.ksyun.ks3.services.request.ListObjectVersionsRequest;
 import com.ksyun.ks3.services.request.adp.GetAdpRequest;
 import com.ksyun.ks3.services.request.GetBucketACLRequest;
 import com.ksyun.ks3.services.request.GetBucketPolicyRequest;
@@ -91,6 +94,8 @@ import com.ksyun.ks3.services.request.object.PutObjectFetchRequest;
 import com.ksyun.ks3.services.request.tag.DeleteObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.GetObjectTaggingRequest;
 import com.ksyun.ks3.services.request.tag.PutObjectTaggingRequest;
+import com.ksyun.ks3.services.request.version.GetBucketVersioningRequest;
+import com.ksyun.ks3.services.request.version.PutBucketVersioningRequest;
 import com.ksyun.ks3.util.Base64;
 import com.ksyun.ks3.util.ClientIllegalArgumentException;
 import com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator;
@@ -367,7 +372,11 @@ public class Ks3Client implements Ks3 {
                             ListObjectsResponseHandler resultHandler) {
         this.listObjects(new ListObjectsRequest(bucketname), resultHandler);
     }
-
+    @Override
+    public void listObjectVersions(ListObjectVersionsRequest request,
+                                   ListObjectsVersionResponseHandler resultHandler){
+        this.invoke(auth, request, resultHandler, true);
+    }
     @Override
     public void listObjects(String bucketname, String prefix,
                             ListObjectsResponseHandler resultHandler) {
@@ -390,6 +399,11 @@ public class Ks3Client implements Ks3 {
     public void deleteObject(String bucketname, String key,
                              DeleteObjectRequestHandler handler) {
         this.deleteObject(new DeleteObjectRequest(bucketname, key), handler);
+    }
+    @Override
+    public void deleteObject(String bucketname, String key, String versionId,
+                             DeleteObjectRequestHandler handler) {
+        this.deleteObject(new DeleteObjectRequest(bucketname, key,versionId), handler);
     }
 
     @Override
@@ -453,7 +467,12 @@ public class Ks3Client implements Ks3 {
         this.headObject(new HeadObjectRequest(bucketname, objectkey),
                 resultHandler);
     }
-
+    @Override
+    public void headObject(String bucketname, String objectkey, String versionId,
+                           HeadObjectResponseHandler resultHandler) {
+        this.headObject(new HeadObjectRequest(bucketname, objectkey),
+                resultHandler);
+    }
     @Override
     public void headObject(HeadObjectRequest request,
                            HeadObjectResponseHandler resultHandler) {
@@ -689,7 +708,12 @@ public class Ks3Client implements Ks3 {
     public void putObjectFetch(PutObjectFetchRequest request, Ks3HttpResponceHandler handler) {
         this.invoke(auth, request, handler, true);
     }
-
+    public void putBucketVersion(PutBucketVersioningRequest request, Ks3HttpResponceHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
+    public void getBucketVersion(GetBucketVersioningRequest request, GetBucketVersioningHandler handler) {
+        this.invoke(auth, request, handler, true);
+    }
 
     private void listParts(ListPartsRequest request,
                            ListPartsResponseHandler handler, boolean isUseAsyncMode) {

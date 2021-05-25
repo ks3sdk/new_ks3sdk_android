@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import android.text.TextUtils;
 import android.util.Base64;
@@ -30,18 +29,12 @@ import com.ksyun.ks3.model.transfer.MD5DigestCalculatingInputStream;
 import com.ksyun.ks3.model.transfer.RepeatableFileInputStream;
 import com.ksyun.ks3.services.request.adp.Adp;
 import com.ksyun.ks3.services.request.common.Ks3HttpObjectRequest;
-import com.ksyun.ks3.services.request.tag.ObjectTag;
 import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.HttpUtils;
 import com.ksyun.ks3.util.LengthCheckInputStream;
 import com.ksyun.ks3.util.Md5Utils;
 import com.ksyun.ks3.util.StringUtils;
-import com.ksyun.ks3.util.XmlWriter;
-
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.between;
-import static com.ksyun.ks3.util.ClientIllegalArgumentExceptionGenerator.notCorrect;
-import static java.io.File.separator;
 
 public class PutObjectRequest extends Ks3HttpObjectRequest implements
         MD5CalculateAble {
@@ -147,8 +140,8 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     @Override
     protected void setupRequest() throws Ks3ClientException {
 
-
         this.setHttpMethod(HttpMethod.PUT);
+        super.setupRequest();
         try {
             /**
              * 设置request body meta
@@ -260,7 +253,7 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
     }
 
     @Override
-    protected void validateParams() throws Ks3ClientException {
+    protected String validateParams() throws Ks3ClientException {
         if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
             throw new Ks3ClientException("bucket name is not correct");
         if (StringUtils.isBlank(this.getObjectkey()))
@@ -284,6 +277,7 @@ public class PutObjectRequest extends Ks3HttpObjectRequest implements
                         "redirectLocation should start with / http:// or https://");
         }
 
+        return null;
     }
 
     public File getFile() {

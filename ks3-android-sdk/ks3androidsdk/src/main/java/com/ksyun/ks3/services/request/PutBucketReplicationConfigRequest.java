@@ -58,7 +58,7 @@ public class PutBucketReplicationConfigRequest extends Ks3HttpRequest {
 
     }
 
-    public void validateParams() {
+    public String validateParams() {
         if (StringUtils.isBlank(this.getBucketname()))
             throw new Ks3ClientException("bucket name is not correct");
         if (this.replicationRule == null)
@@ -67,6 +67,7 @@ public class PutBucketReplicationConfigRequest extends Ks3HttpRequest {
             throw new Ks3ClientException("targetBucket");
         if (this.replicationRule.getPrefixList().size() > 5)
             throw new Ks3ClientException("prefixList too many");
+        return null;
     }
 
 

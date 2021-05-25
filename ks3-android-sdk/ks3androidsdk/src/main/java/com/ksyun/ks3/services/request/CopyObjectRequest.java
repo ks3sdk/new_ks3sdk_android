@@ -23,6 +23,10 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
     private static final long serialVersionUID = -2905675368285940188L;
     private String sourceBucket;
     private String sourceKey;
+    /**
+     * 源object versionId
+     */
+    private String sourceVersionId;
     private CannedAccessControlList cannedAcl;
     private AccessControlList accessControlList;
 
@@ -50,7 +54,10 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
         this(destinationBucket, destinationObject, sourceBucket, sourceKey);
         this.setCannedAcl(cannedAcl);
     }
-
+    public CopyObjectRequest(String destinationBucket,String destinationObject,String sourceBucket,String sourceKey, String sourceVersionId){
+        this(destinationBucket, destinationObject, sourceBucket, sourceKey);
+        this.setSourceVersionId(sourceVersionId);
+    }
 	public CopyObjectRequest(String destinationBucket,
 							 String destinationObject, String sourceBucket, String sourceKey,
 							 CannedAccessControlList cannedAcl,
@@ -68,15 +75,21 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
         this(destinationBucket, destinationObject, sourceBucket, sourceKey);
         this.setAccessControlList(accessControlList);
     }
+    public CopyObjectRequest(String destinationBucket,String destinationObject,String sourceBucket,String sourceKey, String sourceVersionId, CannedAccessControlList cannedAcl){
+        this(destinationBucket,destinationObject,sourceBucket,sourceKey,sourceVersionId);
+        this.setCannedAcl(cannedAcl);
+    }
 
     @Override
     protected void setupRequest() throws Ks3ClientException {
         this.setHttpMethod(HttpMethod.PUT);
         try {
+            String versionQuery = !StringUtils.isBlank(this.sourceVersionId) ? "?versionId=" + this.getSourceVersionId() : "";
             this.addHeader(
                     HttpHeaders.XKssCopySource,
-                    "/" + this.getSourceBucket() + "/"
-                            + URLEncoder.encode(this.getSourceKey(), "UTF-8"));
+                    ("/" + this.getSourceBucket() + "/"
+                            + URLEncoder.encode(this.getSourceKey(), "UTF-8")+versionQuery).replace("//", "/%2F"));
+
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -122,7 +135,7 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
     }
 
     @Override
-    protected void validateParams() throws Ks3ClientException {
+    protected String validateParams() throws Ks3ClientException {
         if (ValidateUtil.validateBucketName(this.sourceBucket) == null)
             throw new Ks3ClientException("source-bucket name is not correct");
         if (StringUtils.isBlank(sourceKey))
@@ -132,6 +145,7 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
         if (StringUtils.isBlank(this.getObjectkey()))
             throw new Ks3ClientException(
                     "destinationObject can not be null");
+        return null;
     }
 
     public String getSourceBucket() {
@@ -164,6 +178,13 @@ public class CopyObjectRequest extends Ks3HttpObjectRequest {
 
     public void setAccessControlList(AccessControlList accessControlList) {
         this.accessControlList = accessControlList;
+    }
+    public void setSourceVersionId(String sourceVersionId) {
+        this.sourceVersionId = sourceVersionId;
+    }
+
+    public String getSourceVersionId() {
+        return sourceVersionId;
     }
 
 }

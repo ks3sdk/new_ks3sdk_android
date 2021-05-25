@@ -39,9 +39,7 @@ import com.ksyun.ks3.services.AuthListener;
 import com.ksyun.ks3.services.AuthResult;
 import com.ksyun.ks3.services.Ks3AuthHandler;
 import com.ksyun.ks3.services.Ks3ClientConfiguration;
-import com.ksyun.ks3.services.Ks3HttpExector;
 import com.ksyun.ks3.services.ServerDateAuthListener;
-import com.ksyun.ks3.services.request.tag.ObjectTagging;
 import com.ksyun.ks3.util.ByteUtil;
 import com.ksyun.ks3.util.Constants;
 import com.ksyun.ks3.util.DateUtil;
@@ -71,6 +69,7 @@ public abstract class Ks3HttpRequest implements Serializable {
     private RequestProgressListener progressListener;
     private RequestHandle handler;
     private static final Pattern ENCODED_CHARACTERS_PATTERN;
+
 
     static {
         StringBuilder pattern = new StringBuilder();
@@ -487,7 +486,7 @@ public abstract class Ks3HttpRequest implements Serializable {
     protected abstract void setupRequest() throws Ks3ClientException;
 
     /* Validate parameters */
-    protected abstract void validateParams() throws Ks3ClientException;
+    protected abstract String validateParams() throws Ks3ClientException;
 
     public AuthListener getAuthListener() {
 

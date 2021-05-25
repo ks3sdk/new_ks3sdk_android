@@ -3,7 +3,6 @@ package com.ksyun.ks3.services.request;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,7 +145,7 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 	}
 
 	@Override
-	protected void validateParams() throws Ks3ClientException {
+	protected String validateParams() throws Ks3ClientException {
 		if (ValidateUtil.validateBucketName(this.getBucketname()) == null)
 			throw new Ks3ClientException("bucket name is not correct");
 		if (StringUtils.isBlank(this.getObjectkey()))
@@ -155,7 +154,8 @@ public class CompleteMultipartUploadRequest extends Ks3HttpRequest {
 			throw new Ks3ClientException("uploadId can not be null");
 		if (this.partETags == null)
 			throw new Ks3ClientException("partETags can not be null");
-	}
+        return null;
+    }
 	
 	public String getUploadId() {
 		return uploadId;
